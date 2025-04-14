@@ -10,7 +10,7 @@ using namespace KamataEngine;
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	// エンジンの初期化
 
-	KamataEngine::Initialize(L"GC1C_01_エイハツ_AL3");
+	KamataEngine::Initialize(L"GC2C_01_エイハツ_AL3");
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	// ゲームシーンのインスタンス作成
 	GameScene* gameScene = new GameScene();
