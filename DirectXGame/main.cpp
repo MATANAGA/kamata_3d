@@ -26,10 +26,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	while (true) {
 		// エンジンの更新
 		if (KamataEngine::Update()) {
+
 			break;
 		}
+		gameScene->Update();
+
 		// 描画
 		dxCommon->PreDraw();
+
+		gameScene->Draw();
 
 		// 描画終了
 		dxCommon->PostDraw();
