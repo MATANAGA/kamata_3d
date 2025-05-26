@@ -7,7 +7,9 @@ void GameScene::Initialize() {
 	const uint32_t kNumBlockHorizontal = 20;
 	const float kBlockWidth = 2.0f;
 	const float kBlockHeight = 2.0f;
+
 	debugCamera_ = new DebugCamera(1280, 720);
+	modelSkydome_ = Model::CreateFromOBJ("SkyDome", true);
 
 	// 先按行数 resize
 	worldTransformBlocks_.resize(kNumBlockVirtical);
@@ -27,12 +29,13 @@ void GameScene::Initialize() {
 		}
 	}
 
+	skydome_ = new Skydome();
+	skydome_->Initialize();
+
 	camera_.Initialize();
 	model_ = new BlockModel();
 	model_->Initialize();
 }
-
-
 
 void GameScene::Update() {
 #ifdef _DEBUG
@@ -42,6 +45,7 @@ void GameScene::Update() {
 #endif
 	model_->Update();
 	debugCamera_->Update();
+	// modelSkydome_->Update();
 	for (const auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {
 			if (!block)
@@ -52,21 +56,38 @@ void GameScene::Update() {
 	}
 	if (isDebugCameraActive_) {
 		debugCamera_->Update();
-		camera_.matView =debugCamera_->GetCamera().matView ;
+		camera_.matView = debugCamera_->GetCamera().matView;
 		camera_.matProjection = debugCamera_->GetCamera().matProjection;
 		camera_.TransferMatrix();
 	} else {
 		camera_.UpdateMatrix();
 	}
-	
-}
 
+	Vector3 cameraPos;
+	if (isDebugCameraActive_) {
+		debugCamera_->Update();
+		camera_.matView = debugCamera_->GetCamera().matView;
+		camera_.matProjection = debugCamera_->GetCamera().matProjection;
+		camera_.TransferMatrix();
+		cameraPos = debugCamera_->GetCamera().translation_;
+	} else {
+		camera_.UpdateMatrix();
+		cameraPos = camera_.translation_;
+	}
+
+	if (skydome_) {
+		skydome_->Update(cameraPos);
+	}
+}
 
 void GameScene::Draw() {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	KamataEngine::Model::PreDraw(dxCommon->GetCommandList());
 
-	// Draw
+	if (skydome_) {
+		skydome_->Draw(camera_);
+	}
+
 	for (const auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {
 			if (!block)
@@ -82,6 +103,7 @@ void GameScene::Draw() {
 GameScene::~GameScene() {
 	delete model_;
 	delete debugCamera_;
+	delete modelSkydome_;
 	for (auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {
 			delete block; // delete nullptr is safe

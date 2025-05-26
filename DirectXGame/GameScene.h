@@ -5,7 +5,7 @@
 #include "KamataEngine.h"
 #include "Block.h"
 #include "MyMath.h"
-
+#include "Skydome.h"
 
 class GameScene {
 public:
@@ -16,9 +16,11 @@ public:
 	void Draw();
 	bool isDebugCameraActive_ = false;
 	KamataEngine::DebugCamera* debugCamera_ = nullptr;
+	KamataEngine::Model* modelSkydome_ = nullptr;
 
 private:
 	KamataEngine::Camera camera_;
 	//Player* player_ = nullptr;
 	BlockModel* model_ = nullptr;
+	Skydome* skydome_ = nullptr;
 };
