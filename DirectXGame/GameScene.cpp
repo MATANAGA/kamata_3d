@@ -26,19 +26,17 @@ void GameScene::Initialize() {
 			}
 		}
 	}
-	
+
 	skydome_ = new Skydome();
 	skydome_->Initialize();
-	
+
 	player_ = new Player();
 	player_->Initialize();
 
 	camera_.Initialize();
 	block_ = new BlockModel();
 	block_->Initialize();
-	
 }
-
 void GameScene::Update() {
 #ifdef _DEBUG
 	if (Input::GetInstance()->TriggerKey(DIK_0)) {
@@ -46,6 +44,7 @@ void GameScene::Update() {
 	}
 #endif
 	block_->Update();
+	player_->Update();
 	debugCamera_->Update();
 	// modelSkydome_->Update();
 	for (const auto& line : worldTransformBlocks_) {
@@ -80,7 +79,7 @@ void GameScene::Update() {
 	if (skydome_) {
 		skydome_->Update(cameraPos);
 	}
-	
+
 }
 
 void GameScene::Draw() {
@@ -105,7 +104,6 @@ void GameScene::Draw() {
 
 	KamataEngine::Model::PostDraw();
 }
-
 
 GameScene::~GameScene() {
 	delete block_;
