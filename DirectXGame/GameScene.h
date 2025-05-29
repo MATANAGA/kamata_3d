@@ -6,6 +6,7 @@
 #include "Block.h"
 #include "MyMath.h"
 #include "Skydome.h"
+#include "Player.h"
 
 class GameScene {
 public:
@@ -20,7 +21,7 @@ public:
 
 private:
 	KamataEngine::Camera camera_;
-	//Player* player_ = nullptr;
-	BlockModel* model_ = nullptr;
+	Player* player_ = nullptr;
+	BlockModel* block_ = nullptr;
 	Skydome* skydome_ = nullptr;
 };

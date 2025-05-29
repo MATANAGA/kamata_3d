@@ -3,8 +3,8 @@
 using namespace KamataEngine;
 
 void BlockModel::Initialize() {
-	textureHandle_ = TextureManager::Load("cube/cube.jpg");
-	model_ = Model::Create();
+	block_ = Model::CreateFromOBJ("block", true);
+
 	worldTransform_.Initialize();
 }
 
@@ -12,8 +12,8 @@ void BlockModel::Update() {
 	// 玩家更新逻辑（如果后续需要）
 }
 
-void BlockModel::Draw(Camera& camera) { model_->Draw(worldTransform_, camera, textureHandle_); }
+void BlockModel::Draw(Camera& camera) { block_->Draw(worldTransform_, camera, textureHandle_); }
 
-void BlockModel::Draw(const WorldTransform& worldTransform, Camera& camera) { model_->Draw(worldTransform, camera, textureHandle_); }
+void BlockModel::Draw(const WorldTransform& worldTransform, Camera& camera) { block_->Draw(worldTransform, camera); }
 
-BlockModel::~BlockModel() { delete model_; }
+BlockModel::~BlockModel() { delete block_; }

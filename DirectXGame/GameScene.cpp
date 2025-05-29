@@ -9,7 +9,6 @@ void GameScene::Initialize() {
 	const float kBlockHeight = 2.0f;
 
 	debugCamera_ = new DebugCamera(1280, 720);
-	modelSkydome_ = Model::CreateFromOBJ("SkyDome", true);
 
 	// 先按行数 resize
 	worldTransformBlocks_.resize(kNumBlockVirtical);
@@ -17,7 +16,6 @@ void GameScene::Initialize() {
 		worldTransformBlocks_[i].resize(kNumBlockHorizontal);
 
 		for (uint32_t j = 0; j < kNumBlockHorizontal; j++) {
-			// 棋盘格模式：仅在 (i + j) 是偶数时放砖块
 			if ((i + j) % 2 == 0) {
 				worldTransformBlocks_[i][j] = new WorldTransform();
 				worldTransformBlocks_[i][j]->Initialize();
@@ -28,13 +26,17 @@ void GameScene::Initialize() {
 			}
 		}
 	}
-
+	
 	skydome_ = new Skydome();
 	skydome_->Initialize();
+	
+	player_ = new Player();
+	player_->Initialize();
 
 	camera_.Initialize();
-	model_ = new BlockModel();
-	model_->Initialize();
+	block_ = new BlockModel();
+	block_->Initialize();
+	
 }
 
 void GameScene::Update() {
@@ -43,7 +45,7 @@ void GameScene::Update() {
 		isDebugCameraActive_ = !isDebugCameraActive_;
 	}
 #endif
-	model_->Update();
+	block_->Update();
 	debugCamera_->Update();
 	// modelSkydome_->Update();
 	for (const auto& line : worldTransformBlocks_) {
@@ -78,11 +80,16 @@ void GameScene::Update() {
 	if (skydome_) {
 		skydome_->Update(cameraPos);
 	}
+	
 }
 
 void GameScene::Draw() {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	KamataEngine::Model::PreDraw(dxCommon->GetCommandList());
+
+	Model::PreDraw(dxCommon->GetCommandList());
+
+	player_->Draw(camera_);
 
 	if (skydome_) {
 		skydome_->Draw(camera_);
@@ -92,7 +99,7 @@ void GameScene::Draw() {
 		for (WorldTransform* block : line) {
 			if (!block)
 				continue;
-			model_->Draw(*block, camera_);
+			block_->Draw(*block, camera_);
 		}
 	}
 
@@ -101,9 +108,11 @@ void GameScene::Draw() {
 
 
 GameScene::~GameScene() {
-	delete model_;
+	delete block_;
 	delete debugCamera_;
 	delete modelSkydome_;
+	delete player_;
+
 	for (auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {
 			delete block; // delete nullptr is safe
