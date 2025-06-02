@@ -1,34 +1,17 @@
 ﻿#include "GameScene.h"
-
+#include "MapChipField.h"
 using namespace KamataEngine;
 
 void GameScene::Initialize() {
-	const uint32_t kNumBlockVirtical = 10;
-	const uint32_t kNumBlockHorizontal = 20;
-	const float kBlockWidth = 2;
-	const float kBlockHeight = 2;
 
 	debugCamera_ = new DebugCamera(1280, 720);
 
-	// 先按行数 resize
-	worldTransformBlocks_.resize(kNumBlockVirtical);
-	for (uint32_t i = 0; i < kNumBlockVirtical; i++) {
-		worldTransformBlocks_[i].resize(kNumBlockHorizontal);
-
-		for (uint32_t j = 0; j < kNumBlockHorizontal; j++) {
-			if ((i + j) % 2 == 0) {
-				worldTransformBlocks_[i][j] = new WorldTransform();
-				worldTransformBlocks_[i][j]->Initialize();
-				worldTransformBlocks_[i][j]->translation_.x = kBlockWidth * j;
-				worldTransformBlocks_[i][j]->translation_.y = kBlockHeight * i;
-			} else {
-				worldTransformBlocks_[i][j] = nullptr; // 空位
-			}
-		}
-	}
-
 	skydome_ = new Skydome();
 	skydome_->Initialize();
+
+	mapChipField_ = new MapChipField;
+	mapChipField_ -> LoadMapChipCsv("Resources/blocks.csv");
+	GenerateBlocks();
 
 	player_ = new Player();
 	player_->Initialize();
@@ -79,7 +62,6 @@ void GameScene::Update() {
 	if (skydome_) {
 		skydome_->Update(cameraPos);
 	}
-
 }
 
 void GameScene::Draw() {
@@ -87,7 +69,6 @@ void GameScene::Draw() {
 	KamataEngine::Model::PreDraw(dxCommon->GetCommandList());
 
 	Model::PreDraw(dxCommon->GetCommandList());
-
 
 	if (skydome_) {
 		skydome_->Draw(camera_);
@@ -105,15 +86,42 @@ void GameScene::Draw() {
 	KamataEngine::Model::PostDraw();
 }
 
+void GameScene::GenerateBlocks() {
+	// 获取地图的行列数
+	uint32_t numBlockVirtical = mapChipField_->GetNumBlockVirticcal();    // 行数（纵向）
+	uint32_t numBlockHorizontal = mapChipField_->GetNumBlockHorizontal(); // 列数（横向）
+
+	// 先 resize 行数
+	worldTransformBlocks_.resize(numBlockVirtical);
+	for (uint32_t i = 0; i < numBlockVirtical; ++i) {
+		// 再为每一行 resize 列数
+		worldTransformBlocks_[i].resize(numBlockHorizontal, nullptr);
+	}
+
+	// チップの種類に応じて WorldTransform を生成
+	for (uint32_t i = 0; i < numBlockVirtical; ++i) {
+		for (uint32_t j = 0; j < numBlockHorizontal; ++j) {
+			if (mapChipField_->GetMapChipTypeByIndex(j, i) == MapChipType::KBlock) {
+				WorldTransform* worldTransform = new WorldTransform();
+				worldTransform->Initialize();
+				// 指定インデックスの座標を取得して設置
+				worldTransform->translation_ = mapChipField_->GetMapChipPositionByIndex(j, i);
+				worldTransformBlocks_[i][j] = worldTransform;
+			}
+		}
+	}
+}
+
+
 GameScene::~GameScene() {
 	delete block_;
 	delete debugCamera_;
 	delete modelSkydome_;
 	delete player_;
-
+	delete mapChipField_;
 	for (auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {
-			delete block; 
+			delete block;
 		}
 	}
 	worldTransformBlocks_.clear();

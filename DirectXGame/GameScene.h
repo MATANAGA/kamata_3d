@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <cassert>
 #include <iostream>
 #include <vector>
@@ -7,6 +7,7 @@
 #include "MyMath.h"
 #include "Skydome.h"
 #include "Player.h"
+#include "MapChipField.h"
 
 class GameScene {
 public:
@@ -15,6 +16,7 @@ public:
 	void Initialize();
 	void Update();
 	void Draw();
+	void GenerateBlocks();
 	bool isDebugCameraActive_ = false;
 	KamataEngine::DebugCamera* debugCamera_ = nullptr;
 	KamataEngine::Model* modelSkydome_ = nullptr;
@@ -24,4 +26,5 @@ private:
 	Player* player_ = nullptr;
 	BlockModel* block_ = nullptr;
 	Skydome* skydome_ = nullptr;
+	MapChipField* mapChipField_;
 };
