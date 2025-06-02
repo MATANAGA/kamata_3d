@@ -88,7 +88,6 @@ void GameScene::Draw() {
 
 	Model::PreDraw(dxCommon->GetCommandList());
 
-	player_->Draw(camera_);//////////////
 
 	if (skydome_) {
 		skydome_->Draw(camera_);
@@ -101,6 +100,7 @@ void GameScene::Draw() {
 			block_->Draw(*block, camera_);
 		}
 	}
+	player_->Draw(camera_); //////////////
 
 	KamataEngine::Model::PostDraw();
 }
