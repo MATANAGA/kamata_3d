@@ -12,7 +12,7 @@ void BlockModel::Update() {
 	// 玩家更新逻辑（如果后续需要）
 }
 
-void BlockModel::Draw(Camera& camera) { block_->Draw(worldTransform_, camera, textureHandle_); }
+void BlockModel::Draw(Camera& camera) { block_->Draw(worldTransform_, camera); }
 
 void BlockModel::Draw(const WorldTransform& worldTransform, Camera& camera) { block_->Draw(worldTransform, camera); }
 

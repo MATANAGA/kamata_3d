@@ -12,5 +12,4 @@ public:
 private:
 	KamataEngine::Model* block_ = nullptr;
 	KamataEngine::WorldTransform worldTransform_;
-	uint32_t textureHandle_ = 0;
 };

@@ -5,8 +5,8 @@ using namespace KamataEngine;
 void GameScene::Initialize() {
 	const uint32_t kNumBlockVirtical = 10;
 	const uint32_t kNumBlockHorizontal = 20;
-	const float kBlockWidth = 2.0f;
-	const float kBlockHeight = 2.0f;
+	const float kBlockWidth = 2;
+	const float kBlockHeight = 2;
 
 	debugCamera_ = new DebugCamera(1280, 720);
 
@@ -88,7 +88,6 @@ void GameScene::Draw() {
 
 	Model::PreDraw(dxCommon->GetCommandList());
 
-	player_->Draw(camera_);
 
 	if (skydome_) {
 		skydome_->Draw(camera_);
@@ -101,6 +100,7 @@ void GameScene::Draw() {
 			block_->Draw(*block, camera_);
 		}
 	}
+	player_->Draw(camera_); //////////////
 
 	KamataEngine::Model::PostDraw();
 }
@@ -113,7 +113,7 @@ GameScene::~GameScene() {
 
 	for (auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {
-			delete block; // delete nullptr is safe
+			delete block; 
 		}
 	}
 	worldTransformBlocks_.clear();
