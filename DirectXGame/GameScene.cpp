@@ -75,12 +75,13 @@ void GameScene::Draw() {
 	}
 
 	for (const auto& line : worldTransformBlocks_) {
-		for (WorldTransform* block : line) {
-			if (!block)
+		for (WorldTransform* blockTransform : line) {
+			if (!blockTransform)
 				continue;
-			block_->Draw(*block, camera_);
+			block_->Draw(*blockTransform, camera_);
 		}
 	}
+
 	player_->Draw(camera_); //////////////
 
 	KamataEngine::Model::PostDraw();
@@ -105,7 +106,7 @@ void GameScene::GenerateBlocks() {
 				WorldTransform* worldTransform = new WorldTransform();
 				worldTransform->Initialize();
 				// 指定インデックスの座標を取得して設置
-				worldTransform->translation_ = mapChipField_->GetMapChipPositionByIndex(j, i);
+				worldTransform->translation_ = mapChipField_->GetMapChipPositionByIndex(i, j);
 				worldTransformBlocks_[i][j] = worldTransform;
 			}
 		}
