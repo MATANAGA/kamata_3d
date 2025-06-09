@@ -107,7 +107,7 @@ void GameScene::GenerateBlocks() {
 				worldTransform->Initialize();
 				// 指定インデックスの座標を取得して設置
 				worldTransformBlocks_[i][j] = worldTransform;
-				worldTransformBlocks_[i][j]->translation_ = mapChipField_->GetMapChipPositionByIndex(i, j);
+				worldTransform->translation_ = mapChipField_->GetMapChipPositionByIndex(i, j);
 			}
 		}
 	}

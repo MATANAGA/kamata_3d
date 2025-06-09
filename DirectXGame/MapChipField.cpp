@@ -59,7 +59,7 @@ MapChipType MapChipField::GetMapChipTypeByIndex(uint32_t xIndex, uint32_t yIndex
 		return MapChipType::KBlank;
 	}
 
-	return mapChipData_.data[xIndex][yIndex];
+	return mapChipData_.data[yIndex][xIndex];
 }
 
 KamataEngine::Vector3 MapChipField::GetMapChipPositionByIndex(uint32_t xIndex, uint32_t yIndex) { 
