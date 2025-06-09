@@ -29,7 +29,7 @@ void GameScene::Update() {
 	block_->Update();
 	player_->Update();
 	debugCamera_->Update();
-	// modelSkydome_->Update();
+
 	for (const auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {
 			if (!block)
@@ -37,14 +37,6 @@ void GameScene::Update() {
 			block->matWorld_ = MakeAffineMatrrix(block->scale_, block->rotation_, block->translation_);
 			block->TransferMatrix();
 		}
-	}
-	if (isDebugCameraActive_) {
-		debugCamera_->Update();
-		camera_.matView = debugCamera_->GetCamera().matView;
-		camera_.matProjection = debugCamera_->GetCamera().matProjection;
-		camera_.TransferMatrix();
-	} else {
-		camera_.UpdateMatrix();
 	}
 
 	Vector3 cameraPos;
@@ -63,6 +55,7 @@ void GameScene::Update() {
 		skydome_->Update(cameraPos);
 	}
 }
+
 
 void GameScene::Draw() {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
@@ -105,9 +98,11 @@ void GameScene::GenerateBlocks() {
 			if (mapChipField_->GetMapChipTypeByIndex(j, i) == MapChipType::KBlock) {
 				WorldTransform* worldTransform = new WorldTransform();
 				worldTransform->Initialize();
+				worldTransform->scale_ = {2.0f, 2.0f, 2.0f}; // 增加这一行来放大墙壁
+
 				// 指定インデックスの座標を取得して設置
 				worldTransformBlocks_[i][j] = worldTransform;
-				worldTransform->translation_ = mapChipField_->GetMapChipPositionByIndex(i, j);
+				worldTransform->translation_ = mapChipField_->GetMapChipPositionByIndex(j, i);
 			}
 		}
 	}

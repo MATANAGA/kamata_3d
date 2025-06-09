@@ -14,6 +14,7 @@ std::map<std::string, MapChipType> mapChipTable = {
 };
 }
 
+
 void MapChipField::ResetMapChipData() {
 
 	mapChipData_.data.clear();
@@ -62,6 +63,12 @@ MapChipType MapChipField::GetMapChipTypeByIndex(uint32_t xIndex, uint32_t yIndex
 	return mapChipData_.data[yIndex][xIndex];
 }
 
-KamataEngine::Vector3 MapChipField::GetMapChipPositionByIndex(uint32_t xIndex, uint32_t yIndex) { 
-	
-	return KamataEngine::Vector3(kBlockWidth*xIndex,kBlockHeight*(kNumBlockVirtical-1-yIndex),0); }
+KamataEngine::Vector3 MapChipField::GetMapChipPositionByIndex(uint32_t xIndex, uint32_t yIndex) {
+    // 左上角为原点，地图向右下展开
+    return KamataEngine::Vector3(
+        kBlockWidth * xIndex-36,
+        kBlockHeight * yIndex-20,
+        0.0f
+    );
+}
+

@@ -14,6 +14,6 @@ void Skydome::Update(const Vector3& cameraPosition) {
 	worldTransform_.TransferMatrix();
 }
 
-void Skydome::Draw(KamataEngine::Camera& camera) {
-	skydome_->Draw(worldTransform_, camera);
+void Skydome::Draw(KamataEngine::Camera& camera_) {
+	skydome_->Draw(worldTransform_, camera_);
 }
