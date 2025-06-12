@@ -2,6 +2,7 @@
 #include "MyMath.h"
 #include "numbers"
 using namespace KamataEngine;
+using namespace MathUtility;
 
 void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
 	model_ = model;
@@ -14,6 +15,18 @@ void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
 void Player::Update() {
 	worldTransform_.matWorld_ = MakeAffineMatrrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
 	worldTransform_.TransferMatrix();
+	worldTransform_.translation_ += velocity_;
+	if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_LEFT)) {
+		Vector3 acceleration = {};
+		if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
+			acceleration.x += kAcceleration;
+		} else if (Input::GetInstance()->PushKey(DIK_LEFT)) {
+			acceleration.x -= kAcceleration;
+		}
+		velocity_ += acceleration;
+	} else {
+		velocity_.x *= (1.0f - kAttenuation);
+	}
 }
 
 void Player::Draw() { model_->Draw(worldTransform_, *camera_); }
