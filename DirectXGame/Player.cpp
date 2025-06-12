@@ -1,29 +1,23 @@
 ﻿#include "Player.h"
-
+#include "MyMath.h"
+#include "numbers"
 using namespace KamataEngine;
 
-void Player::Initialize() {
-	player_ = Model::CreateFromOBJ("player", true);
-
-	// 先初始化（以防内部有清空逻辑）
+void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
+	model_ = model;
+	camera_ = camera;
 	worldTransform_.Initialize();
+	worldTransform_.translation_ = position;
+	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
+}
 
-	// 再设置缩放和位置
-	worldTransform_.scale_ = {2.0f, 2.0f, 2.0f}; // 放大玩家
-	worldTransform_.translation_ = {80.0f, 0.0f, 5.0f};
-
-	// 最后生成变换矩阵
+void Player::Update() {
+	worldTransform_.matWorld_ = MakeAffineMatrrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
 	worldTransform_.TransferMatrix();
 }
 
+void Player::Draw() { model_->Draw(worldTransform_, *camera_); }
 
-
-
-
-void Player::Update() {
-
+Player::~Player() {
+	// 不 delete model_，因为是外部传入的共享资源
 }
-
-void Player::Draw(Camera& camera_) { player_->Draw(worldTransform_, camera_); }
-
-Player::~Player() { delete player_; }

@@ -10,24 +10,29 @@ void GameScene::Initialize() {
 	skydome_->Initialize();
 
 	mapChipField_ = new MapChipField;
-	mapChipField_ -> LoadMapChipCsv("Resources/blocks.csv");
+	mapChipField_->LoadMapChipCsv("Resources/blocks.csv");
 	GenerateBlocks();
 
-	player_ = new Player();
-	player_->Initialize();
+	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(1, 1);
+
+	model_ = new Player();
+	modelPlayer_ = Model::CreateFromOBJ("player"); 
+	model_->Initialize(modelPlayer_, &camera_, playerPosition);
 
 	camera_.Initialize();
 	block_ = new BlockModel();
 	block_->Initialize();
+
 }
 void GameScene::Update() {
+
 #ifdef _DEBUG
 	if (Input::GetInstance()->TriggerKey(DIK_0)) {
 		isDebugCameraActive_ = !isDebugCameraActive_;
 	}
 #endif
 	block_->Update();
-	player_->Update();
+	model_->Update();
 	debugCamera_->Update();
 
 	for (const auto& line : worldTransformBlocks_) {
@@ -56,8 +61,8 @@ void GameScene::Update() {
 	}
 }
 
-
 void GameScene::Draw() {
+
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	KamataEngine::Model::PreDraw(dxCommon->GetCommandList());
 
@@ -75,7 +80,7 @@ void GameScene::Draw() {
 		}
 	}
 
-	player_->Draw(camera_); //////////////
+	model_->Draw(); //////////////
 
 	KamataEngine::Model::PostDraw();
 }
@@ -108,12 +113,11 @@ void GameScene::GenerateBlocks() {
 	}
 }
 
-
 GameScene::~GameScene() {
 	delete block_;
 	delete debugCamera_;
 	delete modelSkydome_;
-	delete player_;
+	delete model_;
 	delete mapChipField_;
 	for (auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {

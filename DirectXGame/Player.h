@@ -4,11 +4,12 @@
 class Player {
 public:
 	~Player();
-	void Initialize();
+	void Initialize(KamataEngine::Model* model, KamataEngine::Camera* camera, const KamataEngine::Vector3& position);
 	void Update();
-	void Draw(KamataEngine::Camera& camera);
+	void Draw();
 
 private:
-	KamataEngine::Model* player_ = nullptr;
+	KamataEngine::Model* model_ = nullptr;
 	KamataEngine::WorldTransform worldTransform_;
+	KamataEngine::Camera* camera_;
 };
