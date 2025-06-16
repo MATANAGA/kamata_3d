@@ -1,13 +1,14 @@
 ﻿#pragma once
+#include "Block.h"
+#include "CameraController.h"
+#include "KamataEngine.h"
+#include "MapChipField.h"
+#include "MyMath.h"
+#include "Player.h"
+#include "Skydome.h"
 #include <cassert>
 #include <iostream>
 #include <vector>
-#include "KamataEngine.h"
-#include "Block.h"
-#include "MyMath.h"
-#include "Skydome.h"
-#include "Player.h"
-#include "MapChipField.h"
 
 class GameScene {
 
@@ -24,6 +25,7 @@ public:
 	KamataEngine::Model* modelPlayer_ = nullptr;
 
 private:
+	CameraController* cameraController_ = nullptr;
 	KamataEngine::Camera camera_;
 	Player* model_ = nullptr;
 	BlockModel* block_ = nullptr;

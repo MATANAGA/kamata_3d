@@ -23,6 +23,13 @@ void GameScene::Initialize() {
 	block_ = new BlockModel();
 	block_->Initialize();
 
+	// カメラコントローラ生成
+	cameraController_ = new CameraController();
+	cameraController_->Initialize();
+	cameraController_->SetTarget(model_);
+	cameraController_->Reset();
+	CameraController::Rect cameraArea = {12.0f, 88.0f, 6.0f, 6.0f};
+	cameraController_->SetMovableArea(cameraArea);
 }
 void GameScene::Update() {
 
@@ -58,6 +65,20 @@ void GameScene::Update() {
 
 	if (skydome_) {
 		skydome_->Update(cameraPos);
+	}
+	
+	if (isDebugCameraActive_) {
+		// デバッグカメラ更新処理
+	} else {
+		// カメラコントローラの更新
+		cameraController_->Update();
+
+		// GameSceneのカメラにView/Projectionを転送
+		camera_.matView = cameraController_->GetViewProjection().matView;
+		camera_.matProjection = cameraController_->GetViewProjection().matProjection;
+
+		// 実カメラへ転送
+		camera_.TransferMatrix();
 	}
 }
 
