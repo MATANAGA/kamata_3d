@@ -66,8 +66,8 @@ MapChipType MapChipField::GetMapChipTypeByIndex(uint32_t xIndex, uint32_t yIndex
 KamataEngine::Vector3 MapChipField::GetMapChipPositionByIndex(uint32_t xIndex, uint32_t yIndex) {
     // 左上角为原点，地图向右下展开
     return KamataEngine::Vector3(
-        kBlockWidth * xIndex-36,
-        kBlockHeight * yIndex-20,
+        kBlockWidth * xIndex,
+        kBlockHeight * yIndex,
         0.0f
     );
 }

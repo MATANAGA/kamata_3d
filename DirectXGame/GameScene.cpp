@@ -103,7 +103,7 @@ void GameScene::GenerateBlocks() {
 			if (mapChipField_->GetMapChipTypeByIndex(j, i) == MapChipType::KBlock) {
 				WorldTransform* worldTransform = new WorldTransform();
 				worldTransform->Initialize();
-				worldTransform->scale_ = {2.0f, 2.0f, 2.0f}; // 增加这一行来放大墙壁
+				worldTransform->scale_ = {1.0f, 1.0f, 1.0f}; // 增加这一行来放大墙壁
 
 				// 指定インデックスの座標を取得して設置
 				worldTransformBlocks_[i][j] = worldTransform;

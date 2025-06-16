@@ -14,6 +14,6 @@ void BlockModel::Update() {
 
 void BlockModel::Draw(Camera& camera) { block_->Draw(worldTransform_, camera); }
 
-void BlockModel::Draw(const WorldTransform& worldTransform, Camera& camera) { block_->Draw(worldTransform, camera); }
-
+void BlockModel::Draw(const WorldTransform& worldTransform, Camera& camera) { block_->Draw(worldTransform, camera);
+}
 BlockModel::~BlockModel() { delete block_; }
