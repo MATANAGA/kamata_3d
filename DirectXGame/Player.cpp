@@ -20,8 +20,10 @@ void Player::Update() {
 	InputMove();
 
 	// ②移動量を加味して衝突判定する
-	CheckMapCollision();
-
+	UpdateMatrix();
+	CollisionMapInfo collisionMapInfo;
+	collisionMapInfo.move = velocity_;
+	CheckMapCollision(collisionMapInfo);
 	// ③判定結果を反映して移動させる
 	CheckMapMove();
 
@@ -41,7 +43,6 @@ void Player::Update() {
 	AnimateTurn();
 
 	// ⑧行列計算
-	UpdateMatrix();
 }
 
 void Player::Draw() { model_->Draw(worldTransform_, *camera_); }
@@ -74,7 +75,6 @@ void Player::InputMove() {
 		// ジャンプ
 		if (Input::GetInstance()->PushKey(DIK_UP)) {
 			velocity_ += Vector3(0, kJumpAcceleration, 0);
-
 		}
 	} else {
 		// 空中：落下処理
@@ -104,6 +104,8 @@ void Player::InputMove() {
 	}
 }
 
+void Player::CheckMapCollision() {}
+
 void Player::AnimateTurn() {
 	if (turnTimer_ > 0.0f) {
 		// タイマーを1/60秒分カウントダウン
@@ -126,10 +128,6 @@ void Player::UpdateMatrix() {
 
 // --- 以下の関数はまだ中身未実装なので、仮置き ---
 
-void Player::CheckMapCollision() {
-	// TODO: マップチップとの衝突判定を実装する
-}
-
 void Player::CheckMapMove() {
 	// TODO: 衝突結果に応じた移動反映処理を実装する
 }
@@ -145,7 +143,24 @@ void Player::CheckMapWall() {
 void Player::CheckMapLanding() {
 	// TODO: 地面との接触を判定して onGround_ を切り替える
 }
+Vector3 Player::CornerPosition(const Vector3& center, Player::Corner corner) {
+	Vector3 offsetTable[Player::kNumCorner] = {
+	    {+Player::kWidth / 2.0f, -Player::kHeight / 2.0f, 0},
+	    {-Player::kWidth / 2.0f, -Player::kHeight / 2.0f, 0},
+	    {+Player::kWidth / 2.0f, +Player::kHeight / 2.0f, 0},
+	    {-Player::kWidth / 2.0f, +Player::kHeight / 2.0f, 0}
+    };
+	return center + offsetTable[static_cast<uint32_t>(corner)];
+}
+void Player::CheckMapCollision(CollisionMapInfo& info) { CheckMapCollisionUp(info); }
+
+void Player::CheckMapCollisionUp(CollisionMapInfo& info) {
+	std::array<Vector3, kNumCorner> positionsNew;
+
+	for (uint32_t i = 0; i < positionsNew.size(); ++i) {
+		positionsNew[i] = CornerPosition(worldTransform_.translation_ + info.move, static_cast<Corner>(i));
+	}
+}
+
 
 Player::~Player() {}
-
-

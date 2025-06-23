@@ -15,16 +15,15 @@ class Player {
 		bool hitWall = false;
 		Vector3 move;
 	};
-	enum class Corner { kRightBottom, kLeftBottom, kRightTop, kLeftTop, kNumCorner };
-	enum class LRDirection { kRight, kLeft };
+	enum Corner { kRightBottom, kLeftBottom, kRightTop, kLeftTop, kNumCorner };
+	enum LRDirection { kRight, kLeft };
 	LRDirection lrdirection_ = LRDirection::kRight;
 	float turnFirstRotationY_ = 0.0f;
 	float turnTimer_ = 0.0f;
 
 	static inline const float kTimeTurn = 0.3f;
 	// 当たり判定サイズ（幅と高さ）
-	static inline const float kWidth = 0.8f;
-	static inline const float kHeight = 0.8f;
+	
 	// ジャンプ
 	bool onGround_ = true;
 	//
@@ -35,15 +34,18 @@ class Player {
 	// 当たり判定の処理
 	void CheckMapCollision(CollisionMapInfo& info);
 	void CheckMapCollisionUp(CollisionMapInfo& info);
-	Vector3 CornerPosition(const Vector3& center, Corner corner);
 
 public:
 	~Player();
+	static inline const float kWidth = 0.8f;
+	static inline const float kHeight = 0.8f;
 	KamataEngine::Vector3 velocity_{};
 	static inline const float kAcceleration = 0.005f;
 	static inline const float kAttenuation = 0.3f;
 	const KamataEngine::WorldTransform& GetWorldTransform() const { return worldTransform_; }
 	const KamataEngine::Vector3& GetVelocity() const { return velocity_; }
+	
+	Vector3 CornerPosition(const Vector3& center, Corner corner);
 
 	void SetMapChipField(MapChipField* mapChipField) { mapChipField_ = mapChipField; } // ← Setter 実装
 	void Initialize(KamataEngine::Model* model, KamataEngine::Camera* camera, const KamataEngine::Vector3& position);
@@ -51,8 +53,6 @@ public:
 	void Draw();
 
 private:
-	
-
 	// 各ステップに対応する関数
 	void InputMove();         // ①移動入力
 	void CheckMapCollision(); // ②移動量から仮の衝突チェック
