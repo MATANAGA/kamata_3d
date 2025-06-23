@@ -1,8 +1,9 @@
 ﻿#define NOMINMAX
 #include "Player.h"
 #include "MyMath.h"
-#include "algorithm"
-#include "numbers"
+#include <algorithm>
+#include <numbers>
+
 using namespace KamataEngine;
 using namespace MathUtility;
 
@@ -15,10 +16,39 @@ void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
 }
 
 void Player::Update() {
-	worldTransform_.matWorld_ = MakeAffineMatrrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
-	worldTransform_.TransferMatrix();
-	if (onGround_) {
+	// ①移動入力
+	InputMove();
 
+	// ②移動量を加味して衝突判定する
+	CheckMapCollision();
+
+	// ③判定結果を反映して移動させる
+	CheckMapMove();
+
+	// --- 移動 ---
+	worldTransform_.translation_ += velocity_;
+
+	// ④天井に接触している場合の処理
+	CheckMapCeiling();
+
+	// ⑤壁に接触している場合の処理
+	CheckMapWall();
+
+	// ⑥接地状態の切り替え
+	CheckMapLanding();
+
+	// ⑦旋回制御
+	AnimateTurn();
+
+	// ⑧行列計算
+	UpdateMatrix();
+}
+
+void Player::Draw() { model_->Draw(worldTransform_, *camera_); }
+
+void Player::InputMove() {
+	if (onGround_) {
+		// キー入力で移動量を設定する処理
 		if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_LEFT)) {
 			Vector3 acceleration = {};
 			if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
@@ -40,10 +70,14 @@ void Player::Update() {
 		} else {
 			velocity_.x *= (1.0f - kAttenuation);
 		}
+
+		// ジャンプ
 		if (Input::GetInstance()->PushKey(DIK_UP)) {
 			velocity_ += Vector3(0, kJumpAcceleration, 0);
+
 		}
 	} else {
+		// 空中：落下処理
 		velocity_ += Vector3(0, -kGravityAccleration, 0);
 		velocity_.y = std::max(velocity_.y, -kLimitFallSpeed);
 	}
@@ -59,7 +93,7 @@ void Player::Update() {
 	if (onGround_) {
 		if (velocity_.y > 0.0f) {
 			onGround_ = false;
-		} 
+		}
 	} else {
 		if (landing) {
 			worldTransform_.translation_.y = 1.0f;
@@ -68,25 +102,50 @@ void Player::Update() {
 			onGround_ = true;
 		}
 	}
-	// --- 旋回処理（turn update）---
+}
+
+void Player::AnimateTurn() {
 	if (turnTimer_ > 0.0f) {
 		// タイマーを1/60秒分カウントダウン
 		turnTimer_ -= 1.0f / 60.0f;
 
-		// 左右の方向に対応する目標角度テーブル
 		float destinationRotationYTable[] = {
-		    std::numbers::pi_v<float> / 2.0f,       // 左（Y軸+90度）
-		    std::numbers::pi_v<float> * 3.0f / 2.0f // 右（Y軸+270度）
+		    std::numbers::pi_v<float> / 2.0f,       // 左（+90°）
+		    std::numbers::pi_v<float> * 3.0f / 2.0f // 右（+270°）
 		};
 
-		// 状態に応じた目標角度を取得
 		float destinationRotationY = destinationRotationYTable[static_cast<uint32_t>(lrdirection_)];
-
-		// 角度補間（線形補間でも良いし、SLERPなど使ってもOK）
 		worldTransform_.rotation_.y = ElseInOut(destinationRotationY, turnFirstRotationY_, turnTimer_ / kTimeTurn);
 	}
 }
 
-void Player::Draw() { model_->Draw(worldTransform_, *camera_); }
+void Player::UpdateMatrix() {
+	worldTransform_.matWorld_ = MakeAffineMatrrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
+	worldTransform_.TransferMatrix();
+}
+
+// --- 以下の関数はまだ中身未実装なので、仮置き ---
+
+void Player::CheckMapCollision() {
+	// TODO: マップチップとの衝突判定を実装する
+}
+
+void Player::CheckMapMove() {
+	// TODO: 衝突結果に応じた移動反映処理を実装する
+}
+
+void Player::CheckMapCeiling() {
+	// TODO: 天井との接触を確認して補正
+}
+
+void Player::CheckMapWall() {
+	// TODO: 左右の壁に当たっている場合の処理
+}
+
+void Player::CheckMapLanding() {
+	// TODO: 地面との接触を判定して onGround_ を切り替える
+}
 
 Player::~Player() {}
+
+

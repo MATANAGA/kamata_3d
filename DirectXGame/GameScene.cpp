@@ -19,6 +19,8 @@ void GameScene::Initialize() {
 	modelPlayer_ = Model::CreateFromOBJ("player"); 
 	model_->Initialize(modelPlayer_, &camera_, playerPosition);
 
+	model_->SetMapChipField(mapChipField_);  // ← この行をプレイヤー初期化後に追加
+
 	camera_.Initialize();
 	block_ = new BlockModel();
 	block_->Initialize();

@@ -2,8 +2,8 @@
 #include <KamataEngine.h>
 #include <cstdint>
 #include <string> // std::string を使うので必要
-#include <vector>
 
+using namespace KamataEngine;
 // マップチップの種類
 enum class MapChipType {
 	KBlank,
@@ -17,6 +17,10 @@ struct MapChipData {
 
 class MapChipField {
 private:
+	struct IndexSet {
+		uint32_t xIndex;
+		uint32_t yIndex;
+	};
 	// 定数
 	static inline const float kBlockWidth = 1.0f;
 	static inline const float kBlockHeight = 1.0f;
@@ -28,6 +32,7 @@ private:
 	MapChipData mapChipData_;
 
 public:
+	IndexSet GetMapChipIndexSetByPosition(const Vector3& position);
 	// マップの初期化（空データ生成）
 	void ResetMapChipData();
 

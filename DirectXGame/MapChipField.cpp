@@ -14,6 +14,13 @@ std::map<std::string, MapChipType> mapChipTable = {
 };
 }
 
+MapChipField::IndexSet MapChipField::GetMapChipIndexSetByPosition(const Vector3& position) {
+	IndexSet indexSet = {};
+	indexSet.xIndex = static_cast<uint32_t>((position.x + kBlockWidth / 2) / kBlockWidth);
+	indexSet.yIndex = kNumBlockVirtical - 1 - static_cast<uint32_t>((position.y + kBlockHeight / 2) / kBlockHeight);
+	return indexSet;
+}
+
 
 void MapChipField::ResetMapChipData() {
 
@@ -64,11 +71,6 @@ MapChipType MapChipField::GetMapChipTypeByIndex(uint32_t xIndex, uint32_t yIndex
 }
 
 KamataEngine::Vector3 MapChipField::GetMapChipPositionByIndex(uint32_t xIndex, uint32_t yIndex) {
-    // 左上角为原点，地图向右下展开
-    return KamataEngine::Vector3(
-        kBlockWidth * xIndex,
-        kBlockHeight * yIndex,
-        0.0f
-    );
+	// 左上角为原点，地图向右下展开
+	return KamataEngine::Vector3(kBlockWidth * xIndex, kBlockHeight * yIndex, 0.0f);
 }
-
