@@ -123,7 +123,7 @@ void GameScene::GenerateBlocks() {
 	// チップの種類に応じて WorldTransform を生成
 	for (uint32_t i = 0; i < numBlockVirtical; ++i) {
 		for (uint32_t j = 0; j < numBlockHorizontal; ++j) {
-			if (mapChipField_->GetMapChipTypeByIndex(j, i) == MapChipType::KBlock) {
+			if (mapChipField_->GetMapChipTypeByIndex(j, i) == MapChipType::kBlock) {
 				WorldTransform* worldTransform = new WorldTransform();
 				worldTransform->Initialize();
 				worldTransform->scale_ = {1.0f, 1.0f, 1.0f}; // 增加这一行来放大墙壁

@@ -4,10 +4,12 @@
 #include <string> // std::string を使うので必要
 
 using namespace KamataEngine;
+
+
 // マップチップの種類
 enum class MapChipType {
-	KBlank,
-	KBlock,
+	kBlank,
+	kBlock,
 };
 
 // マップデータ本体（2次元配列）
@@ -29,6 +31,12 @@ private:
 	MapChipData mapChipData_;
 
 public:
+	struct Rect {
+		float left;
+		float right;
+		float top;
+		float bottom;
+	};
 	struct IndexSet {
 		uint32_t xIndex;
 		uint32_t yIndex;
