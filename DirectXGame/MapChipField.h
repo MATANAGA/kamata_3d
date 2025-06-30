@@ -17,10 +17,7 @@ struct MapChipData {
 
 class MapChipField {
 private:
-	struct IndexSet {
-		uint32_t xIndex;
-		uint32_t yIndex;
-	};
+	
 	// 定数
 	static inline const float kBlockWidth = 1.0f;
 	static inline const float kBlockHeight = 1.0f;
@@ -32,7 +29,12 @@ private:
 	MapChipData mapChipData_;
 
 public:
-	IndexSet GetMapChipIndexSetByPosition(const Vector3& position);
+	struct IndexSet {
+		uint32_t xIndex;
+		uint32_t yIndex;
+	};
+	MapChipField::IndexSet GetMapChipIndexSetByPosition(const Vector3& position);
+	Rect GetRectByIndex(uint32_t xIndex, uint32_t yIndex);
 	// マップの初期化（空データ生成）
 	void ResetMapChipData();
 

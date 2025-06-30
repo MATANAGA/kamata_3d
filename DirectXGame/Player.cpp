@@ -1,5 +1,6 @@
 ﻿#define NOMINMAX
 #include "Player.h"
+#include "MapChipField.h"
 #include "MyMath.h"
 #include <algorithm>
 #include <numbers>
@@ -8,6 +9,7 @@ using namespace KamataEngine;
 using namespace MathUtility;
 
 void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
+	assert(model);
 	model_ = model;
 	camera_ = camera;
 	worldTransform_.Initialize();
@@ -25,13 +27,13 @@ void Player::Update() {
 	collisionMapInfo.move = velocity_;
 	CheckMapCollision(collisionMapInfo);
 	// ③判定結果を反映して移動させる
-	CheckMapMove();
+	CheckMapMove(collisionMapInfo);
 
 	// --- 移動 ---
 	worldTransform_.translation_ += velocity_;
 
 	// ④天井に接触している場合の処理
-	CheckMapCeiling();
+	CheckMapCeiling(collisionMapInfo);
 
 	// ⑤壁に接触している場合の処理
 	CheckMapWall();
@@ -104,8 +106,27 @@ void Player::InputMove() {
 	}
 }
 
-void Player::CheckMapCollision() {}
+void Player::UpdateMatrix() {
+	worldTransform_.matWorld_ = MakeAffineMatrrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
+	worldTransform_.TransferMatrix();
+}
+void Player::CheckMapCollision(CollisionMapInfo& info) { CheckMapCollisionUp(info); }
+// --- 以下の関数はまだ中身未実装なので、仮置き ---
 
+void Player::CheckMapMove(const CollisionMapInfo& info) {
+	worldTransform_.translation_ += info.move;
+
+	// TODO: 衝突結果に応じた移動反映処理を実装する
+}
+
+void Player::CheckMapCeiling(const CollisionMapInfo& info) {
+	// TODO: 天井との接触を確認して補正
+	if (info.ceiling) {
+
+		DebugText::GetInstance()->ConsolePrintf("hit ceiling\n");
+		velocity_.y = 0;
+	}
+}
 void Player::AnimateTurn() {
 	if (turnTimer_ > 0.0f) {
 		// タイマーを1/60秒分カウントダウン
@@ -120,22 +141,6 @@ void Player::AnimateTurn() {
 		worldTransform_.rotation_.y = ElseInOut(destinationRotationY, turnFirstRotationY_, turnTimer_ / kTimeTurn);
 	}
 }
-
-void Player::UpdateMatrix() {
-	worldTransform_.matWorld_ = MakeAffineMatrrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
-	worldTransform_.TransferMatrix();
-}
-
-// --- 以下の関数はまだ中身未実装なので、仮置き ---
-
-void Player::CheckMapMove() {
-	// TODO: 衝突結果に応じた移動反映処理を実装する
-}
-
-void Player::CheckMapCeiling() {
-	// TODO: 天井との接触を確認して補正
-}
-
 void Player::CheckMapWall() {
 	// TODO: 左右の壁に当たっている場合の処理
 }
@@ -144,7 +149,7 @@ void Player::CheckMapLanding() {
 	// TODO: 地面との接触を判定して onGround_ を切り替える
 }
 Vector3 Player::CornerPosition(const Vector3& center, Player::Corner corner) {
-	Vector3 offsetTable[Player::kNumCorner] = {
+	Vector3 offsetTable[kNumCorner] = {
 	    {+Player::kWidth / 2.0f, -Player::kHeight / 2.0f, 0},
 	    {-Player::kWidth / 2.0f, -Player::kHeight / 2.0f, 0},
 	    {+Player::kWidth / 2.0f, +Player::kHeight / 2.0f, 0},
@@ -155,12 +160,38 @@ Vector3 Player::CornerPosition(const Vector3& center, Player::Corner corner) {
 void Player::CheckMapCollision(CollisionMapInfo& info) { CheckMapCollisionUp(info); }
 
 void Player::CheckMapCollisionUp(CollisionMapInfo& info) {
+	if (info.move.y <= 0) {
+		return;
+	}
+
+	std::array<Vector3, kNumCorner> positionsNew;
+
+	for (uint32_t i = 0; i < positionsNew.size(); i++) {
+		positionsNew[i] = CornerPosition(worldTransform_.translation_ + info.move, static_cast<Corner>(i));
+	}
+	MapChipType mapChipType;
+
+	bool hit = false;
+	MapChipField::IndexSet indexSet;
+
+	indexSet = mapChipField_->GetMapChipIndexSetByPosition(positionsNew[kLeftTop]);
+
+	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex, indexSet.yIndex);
+
+	if (mapChipType == MapChipType::kBlock) {
+		hit = true;
+	}
+	if (hit) {
+		indexSet = mapChipField_->GetMapChipIndexSetByPosition(worldTransform_.translation_ + info.move + Vector3(0, +kHeight / 2.0f, 0));
+		MapChipField::Rect rect = mapChipField_->GetRectByIndex(indexSet.xIndex, indexSet.yIndex);
+		info.move.y = std::max(0.0f, rect.bottom - worldTransform_.translation_.y - (kHeight / 2.0f + kBlank));
+		info.ceiling = true;
+	}
 	std::array<Vector3, kNumCorner> positionsNew;
 
 	for (uint32_t i = 0; i < positionsNew.size(); ++i) {
 		positionsNew[i] = CornerPosition(worldTransform_.translation_ + info.move, static_cast<Corner>(i));
 	}
 }
-
 
 Player::~Player() {}
