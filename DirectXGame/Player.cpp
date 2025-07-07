@@ -38,14 +38,16 @@ void Player::Update() {
 	// ⑤ 壁との接触処理（横方向）
 	CheckMapWall();
 
-	// ⑥ 接地状態の切り替え（地面に立っているかどうか）
-	CheckMapLanding();
+	// ✅⑥ 接地状態の切り替え（地面に立っているかどうか）
+	onGround_ = collisionMapInfo.landing;
+
 	// ⑦ 向きアニメーション（左右回転）
 	AnimateTurn();
 
 	// ⑧ 行列更新（描画に必要）
 	UpdateMatrix();
 }
+
 
 void Player::Draw() { model_->Draw(worldTransform_, *camera_); }
 

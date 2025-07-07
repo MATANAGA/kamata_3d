@@ -4,6 +4,7 @@ using namespace KamataEngine;
 
 void GameScene::Initialize() {
 
+
 	debugCamera_ = new DebugCamera(1280, 720);
 
 	skydome_ = new Skydome();
