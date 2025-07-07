@@ -92,6 +92,12 @@ void GameScene::Update() {
 		// 実カメラへ転送
 		camera_.TransferMatrix();
 	}
+	if (enemy_ && model_) {
+		if (enemy_->CheckCollisionWithPlayer(*model_)) {
+			std::cout << "敌人与玩家碰撞，玩家消失！" << std::endl;
+			model_->SetAlive(false);
+		}
+	}
 }
 
 void GameScene::Draw() {
@@ -114,8 +120,10 @@ void GameScene::Draw() {
 			block_->Draw(*blockTransform, camera_);
 		}
 	}
-
-	model_->Draw(); //////////////
+	if (model_ && model_->IsAlive()) {
+		model_->Draw();
+	}
+	//model_->Draw(); //////////////
 
 	KamataEngine::Model::PostDraw();
 }

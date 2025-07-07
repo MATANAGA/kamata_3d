@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "KamataEngine.h"
-#include <numbers>
+#include "Player.h"
 
 class Enemy {
 public:
@@ -8,25 +8,29 @@ public:
 	void Update();
 	void Draw();
 
+	bool CheckCollisionWithPlayer(const Player& player) const;
+
 private:
-	// モデル・カメラ
+	void UpdateMatrix();
+
+	KamataEngine::WorldTransform worldTransform_;
 	KamataEngine::Model* model_ = nullptr;
 	KamataEngine::Camera* camera_ = nullptr;
-
-	// ワールド変換
-	KamataEngine::WorldTransform worldTransform_;
-
-	// 移動用
 	KamataEngine::Vector3 velocity_ = {};
 
-	// 歩行速度
 	static inline const float kWalkSpeed = 0.05f;
 
-	// 歩行アニメーション（首振り）パラメータ
-	float walkTimer_ = 0.0f;
-	static inline const float kWalkMotionAngleStart = -30.0f; // [度]
-	static inline const float kWalkMotionAngleEnd = 30.0f;    // [度]
-	static inline const float kWalkMotionTime = 1.0f;         // 周期[秒]
+	static inline const float kWidth = 0.8f;
+	static inline const float kHeight = 0.8f;
 
-	void UpdateMatrix(); // 行列更新
+	float walkTimer_ = 0.0f;
+
+	// 巡逻范围示例
+	static constexpr float kPatrolMinX = 5.0f;
+	static constexpr float kPatrolMaxX = 15.0f;
+
+	// 步行动画参数（可以根据需要调整）
+	static inline const float kWalkMotionAngleStart = -20.0f;
+	static inline const float kWalkMotionAngleEnd = 20.0f;
+	static inline const float kWalkMotionTime = 1.0f; // 1秒周期
 };

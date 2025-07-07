@@ -28,11 +28,16 @@ class Player {
 
 public:
 	~Player();
+	void SetAlive(bool alive) { alive_ = alive; }
+	bool IsAlive() const { return alive_; }
 
 	KamataEngine::Vector3 velocity_{};
 	static inline const float kAcceleration = 0.01f;
 	static inline const float kAttenuation = 0.1f;
 	const KamataEngine::WorldTransform& GetWorldTransform() const { return worldTransform_; }
+
+	static inline const float kCollisionWidth = 0.8f;
+	static inline const float kCollisionHeight = 0.8f;
 	const KamataEngine::Vector3& GetVelocity() const { return velocity_; }
 
 	void SetMapChipField(MapChipField* mapChipField) { mapChipField_ = mapChipField; } // ← Setter 実装
@@ -43,6 +48,8 @@ public:
 	KamataEngine::Vector3 CornerPosition(const KamataEngine::Vector3& center, Corner corner);
 
 private:
+	bool alive_ = true; // 初始存活
+
 	static inline const float kAttenuationLanding = 0.3f; // 30% 衰减
 	                                                      // 壁衝突時の減速係数（X方向）
 	static inline const float kAttenuationWall = 0.3f;

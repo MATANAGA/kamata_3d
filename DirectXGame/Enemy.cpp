@@ -8,8 +8,7 @@ using namespace KamataEngine;
 using namespace MathUtility;
 
 // 巡逻范围X轴限制（例）
-static constexpr float kPatrolMinX = 5.0f;
-static constexpr float kPatrolMaxX = 15.0f;
+
 
 void Enemy::Initialize(Model* model, Camera* camera, const Vector3& position) {
 	assert(model);
@@ -67,4 +66,19 @@ void Enemy::Draw() {
 void Enemy::UpdateMatrix() {
 	worldTransform_.matWorld_ = MakeAffineMatrrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
 	worldTransform_.TransferMatrix();
+}
+bool Enemy::CheckCollisionWithPlayer(const Player& player) const {
+	const auto& enemyPos = worldTransform_.translation_;
+	const auto& playerPos = player.GetWorldTransform().translation_;
+
+	float enemyHalfW = kWidth / 2.0f;
+	float enemyHalfH = kHeight / 2.0f;
+	float playerHalfW = Player::kCollisionWidth / 2.0f;
+	float playerHalfH = Player::kCollisionHeight / 2.0f;
+
+	bool overlapX = std::abs(enemyPos.x - playerPos.x) < (enemyHalfW + playerHalfW);
+	bool overlapY = std::abs(enemyPos.y - playerPos.y) < (enemyHalfH + playerHalfH);
+	bool overlapZ = std::abs(enemyPos.z - playerPos.z) < (enemyHalfW + playerHalfW); // Z轴近似用宽度
+
+	return overlapX && overlapY && overlapZ;
 }
