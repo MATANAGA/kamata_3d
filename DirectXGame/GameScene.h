@@ -9,9 +9,10 @@
 #include <cassert>
 #include <iostream>
 #include <vector>
+#include "Enemy.h"  
+
 
 class GameScene {
-
 public:
 	std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformBlocks_;
 	~GameScene();
@@ -31,4 +32,7 @@ private:
 	BlockModel* block_ = nullptr;
 	Skydome* skydome_ = nullptr;
 	MapChipField* mapChipField_;
+
+	Enemy* enemy_ = nullptr;
+	KamataEngine::Model* modelEnemy_ = nullptr;
 };

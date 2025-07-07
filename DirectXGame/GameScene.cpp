@@ -20,6 +20,13 @@ void GameScene::Initialize() {
 	modelPlayer_ = Model::CreateFromOBJ("player"); 
 	model_->Initialize(modelPlayer_, &camera_, playerPosition);
 
+	// ↓↓↓ 敵の初期化 ↓↓↓
+	Vector3 enemyPosition = mapChipField_->GetMapChipPositionByIndex(10, 1);
+	enemy_ = new Enemy();
+	modelEnemy_ = Model::CreateFromOBJ("enemy"); // モデルファイル名に注意
+	enemy_->Initialize(modelEnemy_, &camera_, enemyPosition);
+	// ↑↑↑ 敵の初期化 ↑↑↑
+
 	model_->SetMapChipField(mapChipField_);  // ← この行をプレイヤー初期化後に追加
 
 	camera_.Initialize();
@@ -44,7 +51,9 @@ void GameScene::Update() {
 	block_->Update();
 	model_->Update();
 	debugCamera_->Update();
-
+	if (enemy_) {
+		enemy_->Update();
+	}
 	for (const auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {
 			if (!block)
@@ -95,7 +104,9 @@ void GameScene::Draw() {
 	if (skydome_) {
 		skydome_->Draw(camera_);
 	}
-
+	if (enemy_) {
+		enemy_->Draw();
+	}
 	for (const auto& line : worldTransformBlocks_) {
 		for (WorldTransform* blockTransform : line) {
 			if (!blockTransform)
@@ -143,6 +154,9 @@ GameScene::~GameScene() {
 	delete modelSkydome_;
 	delete model_;
 	delete mapChipField_;
+	delete modelEnemy_; // ← モデルがあれば削除
+	delete enemy_;
+
 	for (auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {
 			delete block;
