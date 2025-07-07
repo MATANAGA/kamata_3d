@@ -7,6 +7,10 @@
 using namespace KamataEngine;
 using namespace MathUtility;
 
+// 巡逻范围X轴限制（例）
+static constexpr float kPatrolMinX = 5.0f;
+static constexpr float kPatrolMaxX = 15.0f;
+
 void Enemy::Initialize(Model* model, Camera* camera, const Vector3& position) {
 	assert(model);
 	assert(camera);
@@ -16,7 +20,7 @@ void Enemy::Initialize(Model* model, Camera* camera, const Vector3& position) {
 
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = position;
-	worldTransform_.rotation_.y = -std::numbers::pi_v<float> / 2; // 左向き
+	worldTransform_.rotation_.y = -std::numbers::pi_v<float>/2; // 左向き
 
 	velocity_ = {-kWalkSpeed, 0.0f, 0.0f}; // 左に移動
 
@@ -29,13 +33,20 @@ void Enemy::Update() {
 	// 移動
 	worldTransform_.translation_ += velocity_;
 
-	// ▼ 向きの切り替え：X方向の速度に応じてY軸回転を設定
 	if (velocity_.x > 0.0f) {
-		worldTransform_.rotation_.y = 0.0f; // 右向き
+		worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2; // 右向き（+90度）
 	} else if (velocity_.x < 0.0f) {
-		worldTransform_.rotation_.x = std::numbers::pi_v<float>; // 左向き
+		worldTransform_.rotation_.y = -std::numbers::pi_v<float> / 2; // 左向き（-90度）
 	}
 
+	// 範囲判定：超えたら速度反転
+	if (worldTransform_.translation_.x < kPatrolMinX) {
+		worldTransform_.translation_.x = kPatrolMinX; // 抑える
+		velocity_.x = kWalkSpeed;                     // 右へ移動
+	} else if (worldTransform_.translation_.x > kPatrolMaxX) {
+		worldTransform_.translation_.x = kPatrolMaxX;
+		velocity_.x = -kWalkSpeed; // 左へ移動
+	}
 	// ▼ タイマ一加算
 	walkTimer_ += 1.0f / 60.0f;
 
@@ -45,6 +56,7 @@ void Enemy::Update() {
 
 	UpdateMatrix();
 }
+
 
 void Enemy::Draw() {
 	if (model_ && camera_) {
