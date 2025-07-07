@@ -23,15 +23,15 @@ class Player {
 
 	//
 	static inline const float kGravityAccleration = 0.1f; // 重力加速度（每帧加的速度）
-	static inline const float kLimitFallSpeed = 1.0f;     // 最大落下速度（终端速度）
-	static inline const float kJumpAcceleration = 1.0f;
+	static inline const float kLimitFallSpeed = 0.3f;     // 最大落下速度（终端速度）
+	static inline const float kJumpAcceleration = 0.9f;
 
 public:
 	~Player();
 
 	KamataEngine::Vector3 velocity_{};
 	static inline const float kAcceleration = 0.01f;
-	static inline const float kAttenuation = 0.3f;
+	static inline const float kAttenuation = 0.1f;
 	const KamataEngine::WorldTransform& GetWorldTransform() const { return worldTransform_; }
 	const KamataEngine::Vector3& GetVelocity() const { return velocity_; }
 
@@ -43,6 +43,10 @@ public:
 	KamataEngine::Vector3 CornerPosition(const KamataEngine::Vector3& center, Corner corner);
 
 private:
+	static inline const float kAttenuationLanding = 0.3f; // 30% 衰减
+	                                                      // 壁衝突時の減速係数（X方向）
+	static inline const float kAttenuationWall = 0.3f;
+
 	static inline const float kWidth = 0.8f;
 	static inline const float kHeight = 0.8f;
 	// マップ衝突情報構造体
@@ -61,6 +65,8 @@ private:
 	void CheckMapCollisionDown(CollisionMapInfo& info);
 	void CheckMapCollisionRight(CollisionMapInfo& info);
 	void CheckMapCollisionLeft(CollisionMapInfo& info);
+
+	void ChangeOnGroundState(const CollisionMapInfo& info);
 
 	void CheckMapWall();    // ⑤横方向の壁判定
 	void CheckMapLanding(); // ⑥接地判定

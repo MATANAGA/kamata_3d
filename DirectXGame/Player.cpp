@@ -127,24 +127,29 @@ void Player::AnimateTurn() {
 void Player::CheckMapLanding() {
 	bool landing = false;
 
+	// 当前是在下降
 	if (velocity_.y < 0) {
 		if (worldTransform_.translation_.y <= 1.0f) {
 			landing = true;
 		}
 	}
+
 	if (onGround_) {
+		// 之前是接地，现在上升了 → 切换为空中
 		if (velocity_.y > 0.0f) {
 			onGround_ = false;
 		}
 	} else {
+		// 之前是空中，若刚才撞到了地面 → 落地处理
 		if (landing) {
 			worldTransform_.translation_.y = 1.0f;
-			velocity_.x *= (1.0f - kAttenuation);
-			velocity_.y = 0.0f;
+			velocity_.x *= (1.0f - kAttenuation); // 横方向速度衰减
+			velocity_.y = 0.0f;                   // 停止下落
 			onGround_ = true;
 		}
 	}
 }
+
 Vector3 Player::CornerPosition(const Vector3& center, Player::Corner corner) {
 	Vector3 offsetTable[kNumCorner] = {
 	    {+Player::kWidth / 2.0f, -Player::kHeight / 2.0f, 0},
@@ -234,49 +239,50 @@ void Player::CheckMapCollisionUp(CollisionMapInfo& info) {
 	}
 }
 void Player::CheckMapCollisionDown(CollisionMapInfo& info) {
-	// 下降あり？
+	// ① 移动方向不是向下，就跳过判定
 	if (info.move.y >= 0) {
 		return;
 	}
 
-	// 移動後の4つの角の座標
+	// ② 移动后的角点坐标
 	std::array<Vector3, kNumCorner> positionsNew;
 	for (uint32_t i = 0; i < positionsNew.size(); ++i) {
 		positionsNew[i] = CornerPosition(worldTransform_.translation_ + info.move, static_cast<Corner>(i));
 	}
 
+	// ③ 左下 & 右下角是否打到方块
+	bool hit = false;
+	MapChipField::IndexSet indexSet;
 	MapChipType mapChipType;
 
-	// 真下の当たり判定を行う
-	bool hit = false;
-
-	// 左下点の判定
-	MapChipField::IndexSet indexSet;
+	// 左下角
 	indexSet = mapChipField_->GetMapChipIndexSetByPosition(positionsNew[kLeftBottom]);
 	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex, indexSet.yIndex);
 	if (mapChipType == MapChipType::kBlock) {
 		hit = true;
 	}
 
-	// 右下点の判定
+	// 右下角
 	indexSet = mapChipField_->GetMapChipIndexSetByPosition(positionsNew[kRightBottom]);
 	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex, indexSet.yIndex);
 	if (mapChipType == MapChipType::kBlock) {
 		hit = true;
 	}
 
-	// ブロックにヒット？
+	// ④ 如果撞到了，就限制移动量，防止“めり込み”
 	if (hit) {
-		// めり込みを排除する方向に移動量を設定する
+		// 再次获取“移动后的下边中心点”位置对应方块
 		indexSet = mapChipField_->GetMapChipIndexSetByPosition(worldTransform_.translation_ + info.move + Vector3(0, -kHeight / 2.0f, 0));
-		// めり込み先ブロックの範囲矩形
 		MapChipField::Rect rect = mapChipField_->GetRectByIndex(indexSet.xIndex, indexSet.yIndex);
+
+		// 限制最大可移动距离 = 从角色中心到底部 + 微小空隙
 		info.move.y = std::min(0.0f, rect.top - worldTransform_.translation_.y + kHeight / 2.0f + kBlank);
 
-		// 着地したことを記録する
+		// 标记“着地”状态，用于下一步切换
 		info.landing = true;
 	}
 }
+
 void Player::CheckMapCollisionRight(CollisionMapInfo& info) {
 	// 右方向移動なし？
 	if (info.move.x <= 0) {
