@@ -21,10 +21,20 @@ void GameScene::Initialize() {
 	model_->Initialize(modelPlayer_, &camera_, playerPosition);
 
 	// ↓↓↓ 敵の初期化 ↓↓↓
-	Vector3 enemyPosition = mapChipField_->GetMapChipPositionByIndex(10, 1);
-	enemy_ = new Enemy();
-	modelEnemy_ = Model::CreateFromOBJ("enemy"); // モデルファイル名に注意
-	enemy_->Initialize(modelEnemy_, &camera_, enemyPosition);
+	modelEnemy_ = Model::CreateFromOBJ("enemy"); // 模型只生成一次，多个敌人共用
+
+	// 设定多个生成位置
+	std::vector<Vector3> enemyPositions = {
+	    mapChipField_->GetMapChipPositionByIndex(10, 1),
+	    mapChipField_->GetMapChipPositionByIndex(15, 1),
+	    mapChipField_->GetMapChipPositionByIndex(12, 1),
+	};
+
+	for (const auto& pos : enemyPositions) {
+		Enemy* enemy = new Enemy();
+		enemy->Initialize(modelEnemy_, &camera_, pos);
+		enemies_.push_back(enemy);
+	}
 	// ↑↑↑ 敵の初期化 ↑↑↑
 
 	model_->SetMapChipField(mapChipField_);  // ← この行をプレイヤー初期化後に追加
@@ -51,9 +61,12 @@ void GameScene::Update() {
 	block_->Update();
 	model_->Update();
 	debugCamera_->Update();
-	if (enemy_) {
-		enemy_->Update();
+	
+	
+	for (auto& enemy : enemies_) {
+		enemy->Update();
 	}
+
 	for (const auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {
 			if (!block)
@@ -92,10 +105,13 @@ void GameScene::Update() {
 		// 実カメラへ転送
 		camera_.TransferMatrix();
 	}
-	if (enemy_ && model_) {
-		if (enemy_->CheckCollisionWithPlayer(*model_)) {
-			std::cout << "敌人与玩家碰撞，玩家消失！" << std::endl;
-			model_->SetAlive(false);
+	if (model_ && model_->IsAlive()) {
+		for (auto& enemy : enemies_) {
+			if (enemy->CheckCollisionWithPlayer(*model_)) {
+				std::cout << "敌人与玩家碰撞，玩家消失！" << std::endl;
+				model_->SetAlive(false);
+				break;
+			}
 		}
 	}
 }
@@ -110,9 +126,11 @@ void GameScene::Draw() {
 	if (skydome_) {
 		skydome_->Draw(camera_);
 	}
-	if (enemy_) {
-		enemy_->Draw();
+	
+	for (auto& enemy : enemies_) {
+		enemy->Draw();
 	}
+
 	for (const auto& line : worldTransformBlocks_) {
 		for (WorldTransform* blockTransform : line) {
 			if (!blockTransform)
@@ -162,8 +180,16 @@ GameScene::~GameScene() {
 	delete modelSkydome_;
 	delete model_;
 	delete mapChipField_;
+	
+	for (Enemy* enemy : enemies_) {
+		delete enemy;
+	}
+	enemies_.clear();
+
+	delete modelEnemy_; // 模型只删一次
+
 	delete modelEnemy_; // ← モデルがあれば削除
-	delete enemy_;
+	
 
 	for (auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {

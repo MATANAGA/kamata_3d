@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Block.h"
 #include "CameraController.h"
+#include "Enemy.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
 #include "MyMath.h"
@@ -9,8 +10,6 @@
 #include <cassert>
 #include <iostream>
 #include <vector>
-#include "Enemy.h"  
-
 
 class GameScene {
 public:
@@ -31,8 +30,8 @@ private:
 	Player* model_ = nullptr;
 	BlockModel* block_ = nullptr;
 	Skydome* skydome_ = nullptr;
-	MapChipField* mapChipField_;
+	MapChipField* mapChipField_ = nullptr;
 
-	Enemy* enemy_ = nullptr;
-	KamataEngine::Model* modelEnemy_ = nullptr;
+	std::vector<Enemy*> enemies_;               // 複数の敵
+	KamataEngine::Model* modelEnemy_ = nullptr; // モデルは共用
 };
