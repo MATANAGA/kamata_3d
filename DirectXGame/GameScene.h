@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Block.h"
 #include "CameraController.h"
+#include "DeathParticels.h"
 #include "Enemy.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
@@ -10,9 +11,15 @@
 #include <cassert>
 #include <iostream>
 #include <vector>
-#include "DeathParticels.h"
 
 class GameScene {
+	enum class Phase {
+		kPlay,
+		kDeath,
+
+	};
+	Phase phase_;
+
 public:
 	std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformBlocks_;
 	~GameScene();
@@ -20,6 +27,7 @@ public:
 	void Update();
 	void Draw();
 	void GenerateBlocks();
+	void ChangePhase();
 	bool isDebugCameraActive_ = false;
 	KamataEngine::DebugCamera* debugCamera_ = nullptr;
 	KamataEngine::Model* modelSkydome_ = nullptr;
@@ -36,6 +44,5 @@ private:
 	MapChipField* mapChipField_ = nullptr;
 	DeathParticles* deathParticles_ = nullptr;
 
-
-	std::vector<Enemy*> enemies_;               // 複数の敵
+	std::vector<Enemy*> enemies_; // 複数の敵
 };

@@ -3,6 +3,7 @@
 using namespace KamataEngine;
 
 void GameScene::Initialize() {
+	phase_ = Phase::kPlay;
 
 	debugCamera_ = new DebugCamera(1280, 720);
 
@@ -52,9 +53,9 @@ void GameScene::Initialize() {
 	CameraController::Rect cameraArea = {12.0f, 88.0f, 6.0f, 6.0f};
 	cameraController_->SetMovableArea(cameraArea);
 
-	deathParticles_ = new DeathParticles();
-	deathParticles_->Initialize(modelDeathParticle_, &camera_, playerPosition);
-
+	//deathParticles_ = new DeathParticles();
+	//deathParticles_->Initialize(modelDeathParticle_, &camera_, playerPosition);
+	deathParticles_ = nullptr; // 不提前生成，等死亡时再生成
 }
 void GameScene::Update() {
 
@@ -113,26 +114,19 @@ void GameScene::Update() {
 		// 実カメラへ転送
 		camera_.TransferMatrix();
 	}
-	// 玩家死亡时：
 	if (model_ && model_->IsAlive()) {
 		for (auto& enemy : enemies_) {
 			if (enemy->CheckCollisionWithPlayer(*model_)) {
-				std::cout << "敵と衝突！死亡演出！\n";
-
-				// 粒子生成（必要なときだけ）
-				if (!deathParticles_ || deathParticles_->IsFinished()) {
-					delete deathParticles_;
-					deathParticles_ = new DeathParticles();
-					deathParticles_->Initialize(modelDeathParticle_, &camera_, model_->GetWorldTransform().translation_);
-				}
-
+				std::cout << "敵と衝突！死亡フェーズへ\n";
 				model_->SetAlive(false);
+				phase_ = Phase::kDeath; // 死亡阶段へ
 				break;
 			}
 		}
 	}
 
-	
+
+	ChangePhase();
 }
 
 void GameScene::Draw() {
@@ -195,6 +189,27 @@ void GameScene::GenerateBlocks() {
 		}
 	}
 }
+
+void GameScene::ChangePhase() {
+	switch (phase_) {
+	case GameScene::Phase::kPlay:
+		// 通常プレイ状態
+		break;
+
+	case GameScene::Phase::kDeath:
+		// 粒子未生成时才生成
+		if (!deathParticles_) {
+			deathParticles_ = new DeathParticles();
+			deathParticles_->Initialize(modelDeathParticle_, &camera_, model_->GetWorldTransform().translation_);
+			std::cout << "死亡パーティクル生成\n";
+		}
+		break;
+
+	default:
+		break;
+	}
+}
+
 
 GameScene::~GameScene() {
 	delete block_;

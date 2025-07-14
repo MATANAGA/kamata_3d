@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include "KamataEngine.h"
 #include <algorithm>
 // 角の位置を示す列挙型
@@ -72,7 +73,6 @@ private:
 	void CheckMapCollisionRight(CollisionMapInfo& info);
 	void CheckMapCollisionLeft(CollisionMapInfo& info);
 
-	void ChangeOnGroundState(const CollisionMapInfo& info);
 
 	void CheckMapWall();    // ⑤横方向の壁判定
 	void CheckMapLanding(); // ⑥接地判定
