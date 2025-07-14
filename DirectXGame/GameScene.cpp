@@ -53,7 +53,7 @@ void GameScene::Initialize() {
 	cameraController_->SetMovableArea(cameraArea);
 
 	deathParticles_ = new DeathParticles();
-	//deathParticles_->Initialize(modelDeathParticle_, &camera_, playerPosition);
+	deathParticles_->Initialize(modelDeathParticle_, &camera_, playerPosition);
 
 }
 void GameScene::Update() {
