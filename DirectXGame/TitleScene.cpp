@@ -6,16 +6,16 @@ using namespace KamataEngine;
 void TitleScene::Initialize() {
 	camera_.Initialize();
 
-	modelTitle_ = Model::CreateFromOBJ("titleFont"); // 需要提前准备好 title.obj 模型
+	modelTitle_ = Model::CreateFromOBJ("titleFont"); 
 	modelPlayer_ = Model::CreateFromOBJ("player");
 	worldTransform_.Initialize();
-	worldTransform_.translation_ = {0.0f, 5.0f, 0.0f};
-	worldTransform_.scale_ = {1.0f, 1.0f, 1.0f};
+	worldTransform_.translation_ = {0.0f, 7.0f, 0.0f};
+	worldTransform_.scale_ = {2.0f, 2.0f, 2.0f};
 
 	// 玩家物体变换，放在屏幕正中间，稍低于标题
 	playerTransform_.Initialize();
 	playerTransform_.translation_ = {0.0f, -5.0f, 0.0f}; // 这里可以调整Y轴数值，尝试 0.0f 或 0.5f
-	playerTransform_.scale_ = {10.0f, 10.0f, 10.0f};
+	playerTransform_.scale_ = {13.0f, 13.0f, 13.0f};
 	playerTransform_.rotation_.y = 3.14159f; // ≈ 180度（弧度制）
 
 	objectColor_.Initialize();
@@ -31,8 +31,8 @@ void TitleScene::Update() {
 	}
 
 // タイトルを回転させる → 改为缩放动画
-	float scaleBase = 1.0f;
-	float scaleAmplitude = 0.2f; // 变动幅度
+	float scaleBase = 2.0f;
+	float scaleAmplitude = 0.5f; // 变动幅度
 	float scaleSpeed = 0.05f;
 
 	float scale = scaleBase + scaleAmplitude * std::sin(frameCount_ * scaleSpeed);
