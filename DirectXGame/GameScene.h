@@ -34,8 +34,10 @@ public:
 	KamataEngine::Model* modelPlayer_ = nullptr;
 	KamataEngine::Model* modelDeathParticle_ = nullptr;
 	KamataEngine::Model* modelEnemy_ = nullptr; // モデルは共用
+	bool IsFinished() const { return finished_; } // ← 添加这个
 
 private:
+	bool finished_ = false; // ← 添加这个
 	CameraController* cameraController_ = nullptr;
 	KamataEngine::Camera camera_;
 	Player* model_ = nullptr;

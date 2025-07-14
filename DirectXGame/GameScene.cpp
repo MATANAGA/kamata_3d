@@ -214,7 +214,8 @@ void GameScene::ChangePhase() {
 GameScene::~GameScene() {
 	delete block_;
 	delete debugCamera_;
-	delete modelSkydome_;
+	delete modelSkydome_;  // 如果没赋值，删掉这行
+
 	delete model_;
 	delete mapChipField_;
 	delete deathParticles_;
@@ -225,9 +226,7 @@ GameScene::~GameScene() {
 	}
 	enemies_.clear();
 
-	delete modelEnemy_; // 模型只删一次
-
-	delete modelEnemy_; // ← モデルがあれば削除
+	delete modelEnemy_; // 只删一次
 
 	for (auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {
