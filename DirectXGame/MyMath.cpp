@@ -2,6 +2,7 @@
 #include <algorithm> // std::clamp
 #include <cmath>
 #include <numbers>
+#include <random>
 
 using namespace KamataEngine;
 using namespace MathUtility;
@@ -29,4 +30,10 @@ float ElseInOut(float x1, float x2, float t) {
 	
 	float easedT = -(std::cosf(std::numbers::pi_v<float> * t) - 1.0f) / 2.0f; 
 	return Lerp(x1, x2, easedT);
+}
+float RandomRange(float min, float max) {
+	static std::random_device rd;
+	static std::mt19937 mt(rd());
+	std::uniform_real_distribution<float> dist(min, max);
+	return dist(mt);
 }

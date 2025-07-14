@@ -1,5 +1,4 @@
 ﻿#pragma once
-
 #include "KamataEngine.h"
 #include <algorithm>
 // 角の位置を示す列挙型

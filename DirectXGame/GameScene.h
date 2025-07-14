@@ -10,6 +10,7 @@
 #include <cassert>
 #include <iostream>
 #include <vector>
+#include "DeathParticels.h"
 
 class GameScene {
 public:
@@ -23,6 +24,8 @@ public:
 	KamataEngine::DebugCamera* debugCamera_ = nullptr;
 	KamataEngine::Model* modelSkydome_ = nullptr;
 	KamataEngine::Model* modelPlayer_ = nullptr;
+	KamataEngine::Model* modelDeathParticle_ = nullptr;
+	KamataEngine::Model* modelEnemy_ = nullptr; // モデルは共用
 
 private:
 	CameraController* cameraController_ = nullptr;
@@ -31,7 +34,8 @@ private:
 	BlockModel* block_ = nullptr;
 	Skydome* skydome_ = nullptr;
 	MapChipField* mapChipField_ = nullptr;
+	DeathParticles* deathParticles_ = nullptr;
+
 
 	std::vector<Enemy*> enemies_;               // 複数の敵
-	KamataEngine::Model* modelEnemy_ = nullptr; // モデルは共用
 };

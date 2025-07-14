@@ -4,7 +4,6 @@ using namespace KamataEngine;
 
 void GameScene::Initialize() {
 
-
 	debugCamera_ = new DebugCamera(1280, 720);
 
 	skydome_ = new Skydome();
@@ -17,7 +16,9 @@ void GameScene::Initialize() {
 	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(1, 1);
 
 	model_ = new Player();
-	modelPlayer_ = Model::CreateFromOBJ("player"); 
+	modelPlayer_ = Model::CreateFromOBJ("player");
+	modelDeathParticle_ = Model::CreateFromOBJ("deathParticle");
+
 	model_->Initialize(modelPlayer_, &camera_, playerPosition);
 
 	// ↓↓↓ 敵の初期化 ↓↓↓
@@ -37,7 +38,7 @@ void GameScene::Initialize() {
 	}
 	// ↑↑↑ 敵の初期化 ↑↑↑
 
-	model_->SetMapChipField(mapChipField_);  // ← この行をプレイヤー初期化後に追加
+	model_->SetMapChipField(mapChipField_); // ← この行をプレイヤー初期化後に追加
 
 	camera_.Initialize();
 	block_ = new BlockModel();
@@ -50,6 +51,10 @@ void GameScene::Initialize() {
 	cameraController_->Reset();
 	CameraController::Rect cameraArea = {12.0f, 88.0f, 6.0f, 6.0f};
 	cameraController_->SetMovableArea(cameraArea);
+
+	deathParticles_ = new DeathParticles();
+	//deathParticles_->Initialize(modelDeathParticle_, &camera_, playerPosition);
+
 }
 void GameScene::Update() {
 
@@ -61,8 +66,11 @@ void GameScene::Update() {
 	block_->Update();
 	model_->Update();
 	debugCamera_->Update();
-	
-	
+
+	if (deathParticles_ && !deathParticles_->IsFinished()) {
+		deathParticles_->Update();
+	}
+
 	for (auto& enemy : enemies_) {
 		enemy->Update();
 	}
@@ -91,7 +99,7 @@ void GameScene::Update() {
 	if (skydome_) {
 		skydome_->Update(cameraPos);
 	}
-	
+
 	if (isDebugCameraActive_) {
 		// デバッグカメラ更新処理
 	} else {
@@ -105,15 +113,26 @@ void GameScene::Update() {
 		// 実カメラへ転送
 		camera_.TransferMatrix();
 	}
+	// 玩家死亡时：
 	if (model_ && model_->IsAlive()) {
 		for (auto& enemy : enemies_) {
 			if (enemy->CheckCollisionWithPlayer(*model_)) {
-				std::cout << "敌人与玩家碰撞，玩家消失！" << std::endl;
+				std::cout << "敵と衝突！死亡演出！\n";
+
+				// 粒子生成（必要なときだけ）
+				if (!deathParticles_ || deathParticles_->IsFinished()) {
+					delete deathParticles_;
+					deathParticles_ = new DeathParticles();
+					deathParticles_->Initialize(modelDeathParticle_, &camera_, model_->GetWorldTransform().translation_);
+				}
+
 				model_->SetAlive(false);
 				break;
 			}
 		}
 	}
+
+	
 }
 
 void GameScene::Draw() {
@@ -126,7 +145,10 @@ void GameScene::Draw() {
 	if (skydome_) {
 		skydome_->Draw(camera_);
 	}
-	
+	if (deathParticles_ && !deathParticles_->IsFinished()) {
+		deathParticles_->Draw();
+	}
+
 	for (auto& enemy : enemies_) {
 		enemy->Draw();
 	}
@@ -141,7 +163,7 @@ void GameScene::Draw() {
 	if (model_ && model_->IsAlive()) {
 		model_->Draw();
 	}
-	//model_->Draw(); //////////////
+	// model_->Draw(); //////////////
 
 	KamataEngine::Model::PostDraw();
 }
@@ -180,7 +202,9 @@ GameScene::~GameScene() {
 	delete modelSkydome_;
 	delete model_;
 	delete mapChipField_;
-	
+	delete deathParticles_;
+	delete modelDeathParticle_;
+
 	for (Enemy* enemy : enemies_) {
 		delete enemy;
 	}
@@ -189,7 +213,6 @@ GameScene::~GameScene() {
 	delete modelEnemy_; // 模型只删一次
 
 	delete modelEnemy_; // ← モデルがあれば削除
-	
 
 	for (auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {
