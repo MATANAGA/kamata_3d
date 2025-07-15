@@ -114,16 +114,29 @@ void GameScene::Update() {
 		// 実カメラへ転送
 		camera_.TransferMatrix();
 	}
+	// 敵との衝突判定（死亡判定）
+
 	if (model_ && model_->IsAlive()) {
 		for (auto& enemy : enemies_) {
 			if (enemy->CheckCollisionWithPlayer(*model_)) {
 				std::cout << "敵と衝突！死亡フェーズへ\n";
 				model_->SetAlive(false);
-				phase_ = Phase::kDeath; // 死亡阶段へ
+				phase_ = Phase::kDeath;
+				deathTimer_ = 0.0f; // タイマー初期化
 				break;
 			}
 		}
 	}
+
+	// 死亡フェーズ処理（2秒経過で終了）
+	if (phase_ == Phase::kDeath) {
+		deathTimer_ += 1.0f / 60.0f; // 1フレーム約0.016秒
+
+		if (deathTimer_ >= 2.0f) {
+			finished_ = true; // シーン終了フラグON
+		}
+	}
+
 
 
 	ChangePhase();
@@ -202,6 +215,7 @@ void GameScene::ChangePhase() {
 			deathParticles_ = new DeathParticles();
 			deathParticles_->Initialize(modelDeathParticle_, &camera_, model_->GetWorldTransform().translation_);
 			std::cout << "死亡パーティクル生成\n";
+
 		}
 		break;
 

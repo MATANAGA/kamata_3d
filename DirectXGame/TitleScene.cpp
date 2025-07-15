@@ -1,9 +1,14 @@
 ﻿#include "TitleScene.h"
 #include "MyMath.h"
+#include "Fade.h"
 
 using namespace KamataEngine;
 
 void TitleScene::Initialize() {
+	fade_ = new Fade();
+	fade_->Initialize();
+	fade_->Start(Fade::Status::FadeIn, kFadeTime);
+
 	camera_.Initialize();
 
 	modelTitle_ = Model::CreateFromOBJ("titleFont"); 
@@ -25,16 +30,39 @@ void TitleScene::Initialize() {
 void TitleScene::Update() {
 	frameCount_++;
 
-	// タイトルシーンの終了条件
-	if (Input::GetInstance()->PushKey(DIK_SPACE)) {
-		finished_ = true;
+	switch (phase_) {
+	case Phase::kFadeIn:
+		if (fade_) {
+			fade_->Update();
+			if (!fade_->IsFading()) {
+				phase_ = Phase::kMain;
+			}
+		}
+		break;
+
+	case Phase::kMain:
+		if (Input::GetInstance()->PushKey(DIK_SPACE)) {
+			if (fade_) {
+				fade_->Start(Fade::Status::FadeOut, kFadeTime);
+			}
+			phase_ = Phase::kFadeOut;
+		}
+		break;
+
+	case Phase::kFadeOut:
+		if (fade_) {
+			fade_->Update();
+			if (!fade_->IsFading()) {
+				finished_ = true;
+			}
+		}
+		break;
 	}
 
-// タイトルを回転させる → 改为缩放动画
+	// タイトル縮放アニメーション（常に実行でOK）
 	float scaleBase = 2.0f;
-	float scaleAmplitude = 0.5f; // 变动幅度
+	float scaleAmplitude = 0.5f;
 	float scaleSpeed = 0.05f;
-
 	float scale = scaleBase + scaleAmplitude * std::sin(frameCount_ * scaleSpeed);
 	worldTransform_.scale_ = {scale, scale, scale};
 
@@ -48,6 +76,7 @@ void TitleScene::Update() {
 	camera_.TransferMatrix();
 }
 
+
 void TitleScene::Draw() {
 	Model::PreDraw(DirectXCommon::GetInstance()->GetCommandList());
 
@@ -57,11 +86,14 @@ void TitleScene::Draw() {
 	if (modelPlayer_) {
 		modelPlayer_->Draw(playerTransform_, camera_, &objectColor_);
 	}
-
-	Model::PostDraw();
+// フェード描画
+    if (fade_) {
+        fade_->Draw();
+    }	Model::PostDraw();
 }
 
 TitleScene::~TitleScene() {
 	delete modelTitle_;
 	delete modelPlayer_;
+	delete fade_;
 }

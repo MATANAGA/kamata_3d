@@ -3,6 +3,7 @@
 #include "CameraController.h"
 #include "DeathParticels.h"
 #include "Enemy.h"
+#include "Fade.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
 #include "MyMath.h"
@@ -14,9 +15,10 @@
 
 class GameScene {
 	enum class Phase {
+		kFadeIn,
 		kPlay,
 		kDeath,
-
+		kFadeOut,
 	};
 	Phase phase_;
 
@@ -33,11 +35,13 @@ public:
 	KamataEngine::Model* modelSkydome_ = nullptr;
 	KamataEngine::Model* modelPlayer_ = nullptr;
 	KamataEngine::Model* modelDeathParticle_ = nullptr;
-	KamataEngine::Model* modelEnemy_ = nullptr; // モデルは共用
+	KamataEngine::Model* modelEnemy_ = nullptr;   // モデルは共用
 	bool IsFinished() const { return finished_; } // ← 添加这个
 
 private:
 	bool finished_ = false; // ← 添加这个
+	float deathTimer_ = 0.0f;
+
 	CameraController* cameraController_ = nullptr;
 	KamataEngine::Camera camera_;
 	Player* model_ = nullptr;
@@ -45,6 +49,7 @@ private:
 	Skydome* skydome_ = nullptr;
 	MapChipField* mapChipField_ = nullptr;
 	DeathParticles* deathParticles_ = nullptr;
+	Fade* fade_ = nullptr;
 
 	std::vector<Enemy*> enemies_; // 複数の敵
 };
