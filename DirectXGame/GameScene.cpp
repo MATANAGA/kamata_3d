@@ -4,6 +4,8 @@ using namespace KamataEngine;
 
 void GameScene::Initialize() {
 	phase_ = Phase::kPlay;
+	fade_ = new Fade();
+	fade_->Initialize();
 
 	debugCamera_ = new DebugCamera(1280, 720);
 
@@ -58,7 +60,41 @@ void GameScene::Initialize() {
 	deathParticles_ = nullptr; // 不提前生成，等死亡时再生成
 }
 void GameScene::Update() {
+	switch (phase_) {
+	case Phase::kPlay:
+		// プレイヤー死亡判定
+		if (model_ && model_->IsAlive()) {
+			for (auto& enemy : enemies_) {
+				if (enemy->CheckCollisionWithPlayer(*model_)) {
+					model_->SetAlive(false);
+					phase_ = Phase::kDeathWait;
+					deathTimer_ = 0.0f;
+					break;
+				}
+			}
+		}
+		break;
 
+	case Phase::kDeathWait:
+		deathTimer_ += 1.0f / 60.0f; // 2秒待つ
+		if (deathTimer_ >= 2.0f) {
+			phase_ = Phase::kFadeOutToTitle;
+			fade_->Start(Fade::Status::FadeOut, 1.0f); // 1秒フェードアウト開始
+		}
+		break;
+
+	case Phase::kFadeOutToTitle:
+		fade_->Update();
+		if (!fade_->IsFading()) {
+			finished_ = true; // シーン終了（タイトルに戻る準備完了）
+		}
+		break;
+	}
+
+	// フェードはフェーズによって描画するか制御
+	if (fade_) {
+		fade_->Update();
+	}
 #ifdef _DEBUG
 	if (Input::GetInstance()->TriggerKey(DIK_0)) {
 		isDebugCameraActive_ = !isDebugCameraActive_;
@@ -114,31 +150,7 @@ void GameScene::Update() {
 		// 実カメラへ転送
 		camera_.TransferMatrix();
 	}
-	// 敵との衝突判定（死亡判定）
-
-	if (model_ && model_->IsAlive()) {
-		for (auto& enemy : enemies_) {
-			if (enemy->CheckCollisionWithPlayer(*model_)) {
-				std::cout << "敵と衝突！死亡フェーズへ\n";
-				model_->SetAlive(false);
-				phase_ = Phase::kDeath;
-				deathTimer_ = 0.0f; // タイマー初期化
-				break;
-			}
-		}
-	}
-
-	// 死亡フェーズ処理（2秒経過で終了）
-	if (phase_ == Phase::kDeath) {
-		deathTimer_ += 1.0f / 60.0f; // 1フレーム約0.016秒
-
-		if (deathTimer_ >= 2.0f) {
-			finished_ = true; // シーン終了フラグON
-		}
-	}
-
-
-
+	
 	ChangePhase();
 }
 
@@ -169,6 +181,9 @@ void GameScene::Draw() {
 	}
 	if (model_ && model_->IsAlive()) {
 		model_->Draw();
+	}
+	if (fade_) {
+		fade_->Draw();
 	}
 	// model_->Draw(); //////////////
 
@@ -209,7 +224,7 @@ void GameScene::ChangePhase() {
 		// 通常プレイ状態
 		break;
 
-	case GameScene::Phase::kDeath:
+	case GameScene::Phase::kDeathWait:
 		// 粒子未生成时才生成
 		if (!deathParticles_) {
 			deathParticles_ = new DeathParticles();
@@ -229,7 +244,7 @@ GameScene::~GameScene() {
 	delete block_;
 	delete debugCamera_;
 	delete modelSkydome_;  // 如果没赋值，删掉这行
-
+	delete fade_;
 	delete model_;
 	delete mapChipField_;
 	delete deathParticles_;

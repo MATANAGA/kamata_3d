@@ -14,12 +14,13 @@
 #include <vector>
 
 class GameScene {
+	
 	enum class Phase {
-		kFadeIn,
 		kPlay,
-		kDeath,
-		kFadeOut,
+		kDeathWait,     // 死亡判定後、2秒待機フェーズ
+		kFadeOutToTitle // フェードアウト演出フェーズ
 	};
+
 	Phase phase_;
 
 public:
