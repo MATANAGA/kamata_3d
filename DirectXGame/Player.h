@@ -22,9 +22,9 @@ class Player {
 	bool canJump_ = true;
 
 	//
-	static inline const float kGravityAccleration = 0.1f; // 重力加速度（每帧加的速度）
+	static inline const float kGravityAccleration = 0.03f; // 重力加速度（每帧加的速度）
 	static inline const float kLimitFallSpeed = 0.3f;     // 最大落下速度（终端速度）
-	static inline const float kJumpAcceleration = 0.9f;
+	static inline const float kJumpAcceleration = 0.5f;
 
 public:
 	~Player();
@@ -33,7 +33,7 @@ public:
 
 	KamataEngine::Vector3 velocity_{};
 	static inline const float kAcceleration = 0.01f;
-	static inline const float kAttenuation = 0.1f;
+	static inline const float kAttenuation = 0.4f;
 	const KamataEngine::WorldTransform& GetWorldTransform() const { return worldTransform_; }
 
 	static inline const float kCollisionWidth = 0.8f;
