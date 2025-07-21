@@ -16,7 +16,7 @@ void GameScene::Initialize() {
 	mapChipField_->LoadMapChipCsv("Resources/blocks.csv");
 	GenerateBlocks();
 
-	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(1, 1);
+	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(5, 8);
 
 	model_ = new Player();
 	modelPlayer_ = Model::CreateFromOBJ("player");

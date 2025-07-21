@@ -52,42 +52,53 @@ void Player::Update() {
 void Player::Draw() { model_->Draw(worldTransform_, *camera_); }
 
 void Player::InputMove() {
-	if (onGround_) {
-		// キー入力で移動量を設定する処理
-		if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_LEFT)) {
-			Vector3 acceleration = {};
-			if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
-				if (lrdirection_ != LRDirection::kRight) {
-					turnFirstRotationY_ = worldTransform_.rotation_.y;
-					turnTimer_ = kTimeTurn;
-					lrdirection_ = LRDirection::kRight;
-				}
-				acceleration.x += kAcceleration;
-			} else if (Input::GetInstance()->PushKey(DIK_LEFT)) {
-				if (lrdirection_ != LRDirection::kLeft) {
-					turnFirstRotationY_ = worldTransform_.rotation_.y;
-					turnTimer_ = kTimeTurn;
-					lrdirection_ = LRDirection::kLeft;
-				}
-				acceleration.x -= kAcceleration;
-			}
-			velocity_ += acceleration;
-		} else {
-			velocity_.x *= (1.0f - kAttenuation);
-		}
+	Vector3 acceleration = {};
 
-		// ジャンプ
-		if (Input::GetInstance()->PushKey(DIK_UP)) {
-			velocity_ += Vector3(0, kJumpAcceleration, 0);
+	// 左右移动：无论空中还是地面都接受输入，区别在于加速度大小
+	float currentAcceleration = onGround_ ? kAcceleration : kAcceleration * 0.05f; // 空中加速减半例子
+
+	if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
+		if (lrdirection_ != LRDirection::kRight) {
+			turnFirstRotationY_ = worldTransform_.rotation_.y;
+			turnTimer_ = kTimeTurn;
+			lrdirection_ = LRDirection::kRight;
 		}
-	} else {
-		// 空中：落下処理
+		acceleration.x += currentAcceleration;
+	}
+	if (Input::GetInstance()->PushKey(DIK_LEFT)) {
+		if (lrdirection_ != LRDirection::kLeft) {
+			turnFirstRotationY_ = worldTransform_.rotation_.y;
+			turnTimer_ = kTimeTurn;
+			lrdirection_ = LRDirection::kLeft;
+		}
+		acceleration.x -= currentAcceleration;
+	}
+
+	velocity_ += acceleration;
+
+	// 地面时没有输入则衰减速度，空中不衰减（或者你想要的话可以加点空气阻力）
+	if (onGround_ && !Input::GetInstance()->PushKey(DIK_RIGHT) && !Input::GetInstance()->PushKey(DIK_LEFT)) {
+		velocity_.x *= (1.0f - kAttenuation);
+	}
+
+	// 限制最大速度
+	constexpr float kMaxSpeed = 0.2f; // 根据你需要调整
+	velocity_.x = std::clamp(velocity_.x, -kMaxSpeed, kMaxSpeed);
+
+	// 跳跃输入（只有地面时可以跳）
+	if (onGround_ && Input::GetInstance()->PushKey(DIK_UP)) {
+		velocity_ += Vector3(0, kJumpAcceleration, 0);
+		onGround_ = false; // 跳跃中切换为非接地状态
+	}
+
+	// 空中重力处理
+	if (!onGround_) {
 		velocity_ += Vector3(0, -kGravityAccleration, 0);
 		velocity_.y = std::max(velocity_.y, -kLimitFallSpeed);
 	}
-
-	
 }
+
+
 
 void Player::UpdateMatrix() {
 	worldTransform_.matWorld_ = MakeAffineMatrrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
