@@ -1,6 +1,6 @@
 ﻿#include "TitleScene.h"
-#include "MyMath.h"
 #include "Fade.h"
+#include "MyMath.h"
 
 using namespace KamataEngine;
 
@@ -11,18 +11,26 @@ void TitleScene::Initialize() {
 
 	camera_.Initialize();
 
-	modelTitle_ = Model::CreateFromOBJ("titleFont"); 
+	// 加载BGM
+	bgmHandle_ = Audio::GetInstance()->LoadWave("title_bgm.mp3");
+	bgmPlaying_ = false;
+
+	// 加载标题模型和玩家模型
+	modelTitle_ = Model::CreateFromOBJ("titleFont");
 	modelPlayer_ = Model::CreateFromOBJ("player");
+
+	// 标题位置与缩放
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = {0.0f, 7.0f, 0.0f};
 	worldTransform_.scale_ = {2.0f, 2.0f, 2.0f};
 
-	// 玩家物体变换，放在屏幕正中间，稍低于标题
+	// 玩家位置与缩放
 	playerTransform_.Initialize();
-	playerTransform_.translation_ = {0.0f, -5.0f, 0.0f}; // 这里可以调整Y轴数值，尝试 0.0f 或 0.5f
+	playerTransform_.translation_ = {0.0f, -5.0f, 0.0f}; // 屏幕正中偏下
 	playerTransform_.scale_ = {13.0f, 13.0f, 13.0f};
-	playerTransform_.rotation_.y = 3.14159f; // ≈ 180度（弧度制）
+	playerTransform_.rotation_.y = 3.14159f; // 180度
 
+	// 颜色
 	objectColor_.Initialize();
 	objectColor_.SetColor({1, 1, 1, 1});
 }
@@ -59,13 +67,14 @@ void TitleScene::Update() {
 		break;
 	}
 
-	// タイトル縮放アニメーション（常に実行でOK）
+	// 标题缩放动画
 	float scaleBase = 2.0f;
 	float scaleAmplitude = 0.5f;
 	float scaleSpeed = 0.05f;
 	float scale = scaleBase + scaleAmplitude * std::sin(frameCount_ * scaleSpeed);
 	worldTransform_.scale_ = {scale, scale, scale};
 
+	// 更新世界矩阵
 	worldTransform_.matWorld_ = MakeAffineMatrrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
 	worldTransform_.TransferMatrix();
 
@@ -74,8 +83,13 @@ void TitleScene::Update() {
 
 	camera_.UpdateMatrix();
 	camera_.TransferMatrix();
-}
 
+	// 播放BGM（第一次播放）
+	if (!bgmPlaying_) {
+		Audio::GetInstance()->PlayWave(bgmHandle_, true); // 循环播放
+		bgmPlaying_ = true;
+	}
+}
 
 void TitleScene::Draw() {
 	Model::PreDraw(DirectXCommon::GetInstance()->GetCommandList());
@@ -86,13 +100,19 @@ void TitleScene::Draw() {
 	if (modelPlayer_) {
 		modelPlayer_->Draw(playerTransform_, camera_, &objectColor_);
 	}
-// フェード描画
-    if (fade_) {
-        fade_->Draw();
-    }	Model::PostDraw();
+
+	// Fade绘制
+	if (fade_) {
+		fade_->Draw();
+	}
+
+	Model::PostDraw();
 }
 
 TitleScene::~TitleScene() {
+	// 停止BGM
+	Audio::GetInstance()->StopWave(bgmHandle_);
+
 	delete modelTitle_;
 	delete modelPlayer_;
 	delete fade_;

@@ -1,8 +1,8 @@
 ﻿#pragma once
+#include "Fade.h"
 #include "KamataEngine.h"
 #include <cassert>
 #include <iostream>
-#include "Fade.h"
 
 class TitleScene {
 public:
@@ -10,8 +10,8 @@ public:
 		kFadeIn,
 		kMain,
 		kFadeOut,
-
 	};
+
 	Phase phase_ = Phase::kFadeIn;
 	bool finished_ = false;
 
@@ -20,7 +20,6 @@ public:
 	void Update();
 	void Draw();
 	bool IsFinished() const { return finished_; }
-	
 
 private:
 	int frameCount_ = 0;
@@ -30,7 +29,8 @@ private:
 	KamataEngine::Model* modelTitle_ = nullptr;
 	KamataEngine::Model* modelPlayer_ = nullptr;
 	KamataEngine::WorldTransform worldTransform_;
-	KamataEngine::WorldTransform playerTransform_; // 玩家变换
-
+	KamataEngine::WorldTransform playerTransform_;
 	KamataEngine::ObjectColor objectColor_;
+	uint32_t bgmHandle_ = 0;
+	bool bgmPlaying_ = false;
 };

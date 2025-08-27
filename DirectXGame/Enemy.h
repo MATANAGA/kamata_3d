@@ -24,6 +24,10 @@ private:
 	static inline const float kHeight = 0.8f;
 
 	float walkTimer_ = 0.0f;
+	float selfRotateAngle_ = 0.0f;
+	float selfRotateX_ = 0.0f;
+	float selfRotateY_ = 0.0f;
+
 
 	// 巡逻范围示例
 	static constexpr float kPatrolMinX = 5.0f;

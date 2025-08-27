@@ -14,12 +14,7 @@
 #include <vector>
 
 class GameScene {
-	
-	enum class Phase {
-		kPlay,
-		kDeathWait,     // 死亡判定後、2秒待機フェーズ
-		kFadeOutToTitle // フェードアウト演出フェーズ
-	};
+	enum class Phase { kPlay, kDeathWait, kFadeOutToTitle };
 
 	Phase phase_;
 
@@ -31,16 +26,20 @@ public:
 	void Draw();
 	void GenerateBlocks();
 	void ChangePhase();
+
+	bool IsFinished() const { return finished_; }
+	bool IsDeathWaitFinished() const { return phase_ == Phase::kFadeOutToTitle; }
+	Player* GetPlayer() const { return model_; } // 访问玩家
+
 	bool isDebugCameraActive_ = false;
 	KamataEngine::DebugCamera* debugCamera_ = nullptr;
 	KamataEngine::Model* modelSkydome_ = nullptr;
 	KamataEngine::Model* modelPlayer_ = nullptr;
 	KamataEngine::Model* modelDeathParticle_ = nullptr;
-	KamataEngine::Model* modelEnemy_ = nullptr;   // モデルは共用
-	bool IsFinished() const { return finished_; } // ← 添加这个
+	KamataEngine::Model* modelEnemy_ = nullptr;
 
 private:
-	bool finished_ = false; // ← 添加这个
+	bool finished_ = false;
 	float deathTimer_ = 0.0f;
 
 	CameraController* cameraController_ = nullptr;
@@ -52,5 +51,12 @@ private:
 	DeathParticles* deathParticles_ = nullptr;
 	Fade* fade_ = nullptr;
 
-	std::vector<Enemy*> enemies_; // 複数の敵
+	std::vector<Enemy*> enemies_;
+
+	// 音效
+	uint32_t deathSoundHandle_ = 0; // 死亡音效
+	bool deathSoundPlayed_ = false;
+
+	uint32_t bgmHandle_ = 0; // BGM
+	bool bgmPlaying_ = false;
 };

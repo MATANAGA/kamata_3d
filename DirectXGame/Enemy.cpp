@@ -29,32 +29,36 @@ void Enemy::Initialize(Model* model, Camera* camera, const Vector3& position) {
 }
 
 void Enemy::Update() {
-	// 移動
+	// 移动
 	worldTransform_.translation_ += velocity_;
 
-	if (velocity_.x > 0.0f) {
-		worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2; // 右向き（+90度）
-	} else if (velocity_.x < 0.0f) {
-		worldTransform_.rotation_.y = -std::numbers::pi_v<float> / 2; // 左向き（-90度）
-	}
-
-	// 範囲判定：超えたら速度反転
+	// 巡逻边界判定
 	if (worldTransform_.translation_.x < kPatrolMinX) {
-		worldTransform_.translation_.x = kPatrolMinX; // 抑える
-		velocity_.x = kWalkSpeed;                     // 右へ移動
+		worldTransform_.translation_.x = kPatrolMinX;
+		velocity_.x = kWalkSpeed;
 	} else if (worldTransform_.translation_.x > kPatrolMaxX) {
 		worldTransform_.translation_.x = kPatrolMaxX;
-		velocity_.x = -kWalkSpeed; // 左へ移動
+		velocity_.x = -kWalkSpeed;
 	}
-	// ▼ タイマ一加算
-	walkTimer_ += 1.0f / 60.0f;
 
-	float param = std::sin(2.0f * std::numbers::pi_v<float> * walkTimer_ / kWalkMotionTime);
-	float degree = kWalkMotionAngleStart + (kWalkMotionAngleEnd - kWalkMotionAngleStart) * (param + 1.0f) / 2.0f;
-	worldTransform_.rotation_.x = degree * (std::numbers::pi_v<float> / 180.0f); // 度→ラジアン
+	// 朝向（左右翻转用）
+	float facingY = (velocity_.x > 0.0f) ? std::numbers::pi_v<float> / 2 : -std::numbers::pi_v<float> / 2;
+
+	// --- 自转角度累加 ---
+	const float kRotateSpeedY = 2.0f * std::numbers::pi_v<float> / 120.0f; // Y 轴自转速度
+	const float kRotateSpeedX = 2.0f * std::numbers::pi_v<float> / 150.0f; // X 轴自转速度
+
+	selfRotateY_ += kRotateSpeedY;
+	selfRotateX_ += kRotateSpeedX;
+
+	// 应用旋转
+	worldTransform_.rotation_.y = facingY + selfRotateY_;
+	worldTransform_.rotation_.x = selfRotateX_;
 
 	UpdateMatrix();
 }
+
+
 
 
 void Enemy::Draw() {
