@@ -26,7 +26,7 @@ void ClearScene::Update() {
 	timer_ += 1.0f / 60.0f;
 
 	if (!bgmPlaying_) {
-		Audio::GetInstance()->PlayWave(bgmHandle_, true);
+		Audio::GetInstance()->PlayWave(bgmHandle_, false);
 		bgmPlaying_ = true;
 	}
 

@@ -3,6 +3,7 @@
 using namespace KamataEngine;
 
 void GameScene::Initialize() {
+
 	phase_ = Phase::kPlay;
 	fade_ = new Fade();
 	fade_->Initialize();
@@ -30,6 +31,8 @@ void GameScene::Initialize() {
 	    mapChipField_->GetMapChipPositionByIndex(10, 1),
 	    mapChipField_->GetMapChipPositionByIndex(15, 1),
 	    mapChipField_->GetMapChipPositionByIndex(12, 1),
+	    mapChipField_->GetMapChipPositionByIndex(25, 8),
+
 	};
 	for (const auto& pos : enemyPositions) {
 		Enemy* enemy = new Enemy();
@@ -67,20 +70,38 @@ void GameScene::Update() {
 		bgmHandle_ = Audio::GetInstance()->PlayWave(bgmHandle_, true);
 		bgmPlaying_ = true;
 	}
+#ifdef _DEBUG
+	if (Input::GetInstance()->TriggerKey(DIK_0)) {
+		isDebugCameraActive_ = !isDebugCameraActive_;
+	}
+#endif
 
 	switch (phase_) {
-	case Phase::kPlay:
-		if (model_ && model_->IsAlive()) {
-			for (auto& enemy : enemies_) {
-				if (enemy->CheckCollisionWithPlayer(*model_)) {
+	case Phase::kPlay: {
+		for (auto it = enemies_.begin(); it != enemies_.end();) {
+			Enemy* enemy = *it;
+			if (enemy->CheckCollisionWithPlayer(*model_)) {
+				const auto& playerPos = model_->GetWorldTransform().translation_;
+				const auto& enemyPos = enemy->GetWorldTransform().translation_;
+				bool stomped = (model_->velocity_.y < 0) && (playerPos.y > enemyPos.y + Enemy::kHeight / 2.0f);
+
+				if (stomped) {
+					// 玩家踩死敌人
+					it = enemies_.erase(it);
+					delete enemy;
+					model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
+					continue; // 跳过 it++
+				} else {
+					// 玩家被碰到 → 死亡
 					model_->SetAlive(false);
 					phase_ = Phase::kDeathWait;
 					deathTimer_ = 0.0f;
 					break;
 				}
 			}
+			++it;
 		}
-		break;
+	} break;
 	case Phase::kDeathWait:
 		deathTimer_ += 1.0f / 60.0f;
 		if (deathTimer_ >= 2.0f) {
@@ -119,25 +140,27 @@ void GameScene::Update() {
 
 	Vector3 cameraPos;
 	if (isDebugCameraActive_) {
-		debugCamera_->Update();
 		camera_.matView = debugCamera_->GetCamera().matView;
 		camera_.matProjection = debugCamera_->GetCamera().matProjection;
 		camera_.TransferMatrix();
 		cameraPos = debugCamera_->GetCamera().translation_;
 	} else {
-		camera_.UpdateMatrix();
+		cameraController_->Update();
+		camera_.matView = cameraController_->GetViewProjection().matView;
+		camera_.matProjection = cameraController_->GetViewProjection().matProjection;
+		camera_.TransferMatrix();
 		cameraPos = camera_.translation_;
 	}
 
 	if (skydome_)
 		skydome_->Update(cameraPos);
 
-	if (!isDebugCameraActive_) {
-		cameraController_->Update();
-		camera_.matView = cameraController_->GetViewProjection().matView;
-		camera_.matProjection = cameraController_->GetViewProjection().matProjection;
-		camera_.TransferMatrix();
+	if (phase_ == Phase::kPlay && enemies_.empty()) {
+		phase_ = Phase::kFadeOutToTitle; // 改为淡出到标题
+		fadeTimer_ = 0.0f;               // 重置计时器
+		fade_->Start(Fade::Status::FadeOut, kFadeOutToClear);
 	}
+
 
 	ChangePhase();
 }
@@ -147,10 +170,17 @@ void GameScene::ChangePhase() {
 		deathParticles_ = new DeathParticles();
 		deathParticles_->Initialize(modelDeathParticle_, &camera_, model_->GetWorldTransform().translation_);
 
-		// 播放死亡音效一次
 		if (!deathSoundPlayed_) {
 			Audio::GetInstance()->PlayWave(deathSoundHandle_, false);
 			deathSoundPlayed_ = true;
+		}
+	}
+
+	if (phase_ == Phase::kFadeOutToTitle) {
+		fadeTimer_ += 1.0f / 60.0f; // 每帧累加
+		if (fadeTimer_ >= kFadeOutToClear) {
+			finished_ = true;
+			std::cout << "通关！" << std::endl;
 		}
 	}
 }

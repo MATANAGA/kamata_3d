@@ -18,6 +18,9 @@ class GameScene {
 
 	Phase phase_;
 
+	static constexpr float kFadeOutToClear = 1.0f; // 通关淡出持续时间 1 秒
+	float fadeTimer_ = 0.0f;                       // 通关淡出计时器
+
 public:
 	std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformBlocks_;
 	~GameScene();
@@ -60,9 +63,3 @@ private:
 	uint32_t deathSoundHandle_ = 0; // 死亡音效
 	bool deathSoundPlayed_ = false;
 };
-
-//#ifdef _DEBUG
-//if (Input::GetInstance()->TriggerKey(DIK_0)) {
-//	isDebugCameraActive_ = !isDebugCameraActive_;
-//}
-//#endif

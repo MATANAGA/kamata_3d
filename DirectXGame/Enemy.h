@@ -9,6 +9,8 @@ public:
 	void Draw();
 
 	bool CheckCollisionWithPlayer(const Player& player) const;
+	const KamataEngine::WorldTransform& GetWorldTransform() const { return worldTransform_; }
+	static inline const float kHeight = 0.8f;
 
 private:
 	void UpdateMatrix();
@@ -19,22 +21,17 @@ private:
 	KamataEngine::Vector3 velocity_ = {};
 
 	static inline const float kWalkSpeed = 0.05f;
-
 	static inline const float kWidth = 0.8f;
-	static inline const float kHeight = 0.8f;
 
 	float walkTimer_ = 0.0f;
 	float selfRotateAngle_ = 0.0f;
 	float selfRotateX_ = 0.0f;
 	float selfRotateY_ = 0.0f;
 
-
-	// 巡逻范围示例
 	static constexpr float kPatrolMinX = 5.0f;
 	static constexpr float kPatrolMaxX = 15.0f;
 
-	// 步行动画参数（可以根据需要调整）
 	static inline const float kWalkMotionAngleStart = -20.0f;
 	static inline const float kWalkMotionAngleEnd = 20.0f;
-	static inline const float kWalkMotionTime = 1.0f; // 1秒周期
+	static inline const float kWalkMotionTime = 1.0f;
 };
