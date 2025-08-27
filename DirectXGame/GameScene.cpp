@@ -28,15 +28,9 @@ void GameScene::Initialize() {
 	// 敌人初始化
 	modelEnemy_ = Model::CreateFromOBJ("kunBall");
 	std::vector<Vector3> enemyPositions = {
-	    mapChipField_->GetMapChipPositionByIndex(10, 1),
-	    mapChipField_->GetMapChipPositionByIndex(15, 1),
-	    mapChipField_->GetMapChipPositionByIndex(12, 1),
-	    mapChipField_->GetMapChipPositionByIndex(25, 8),
-		mapChipField_->GetMapChipPositionByIndex(32, 10), 
-		mapChipField_->GetMapChipPositionByIndex(12, 6),
-	    mapChipField_->GetMapChipPositionByIndex(12, 6), 
-		mapChipField_->GetMapChipPositionByIndex(40, 2),
-
+	    mapChipField_->GetMapChipPositionByIndex(50, 1), mapChipField_->GetMapChipPositionByIndex(55, 1),  mapChipField_->GetMapChipPositionByIndex(12, 1),
+	    mapChipField_->GetMapChipPositionByIndex(25, 8), mapChipField_->GetMapChipPositionByIndex(32, 10), mapChipField_->GetMapChipPositionByIndex(12, 6),
+	    mapChipField_->GetMapChipPositionByIndex(32, 8), mapChipField_->GetMapChipPositionByIndex(40, 2),
 
 	};
 	for (const auto& pos : enemyPositions) {
@@ -61,8 +55,11 @@ void GameScene::Initialize() {
 	deathParticles_ = nullptr;
 
 	// 加载死亡音效
-	deathSoundHandle_ = Audio::GetInstance()->LoadWave("go.wav");
+	deathSoundHandle_ = Audio::GetInstance()->LoadWave("niganma.mp3");
 	deathSoundPlayed_ = false;
+	// 加载死亡音效
+	hitSoundHandle_ = Audio::GetInstance()->LoadWave("go.wav");
+	hitSoundPlayed_ = false;
 
 	// 加载 BGM
 	bgmHandle_ = Audio::GetInstance()->LoadWave("game_bgm.mp3");
@@ -91,9 +88,18 @@ void GameScene::Update() {
 				bool stomped = (model_->velocity_.y < 0) && (playerPos.y > enemyPos.y + Enemy::kHeight / 2.0f);
 
 				if (stomped) {
-					// 玩家踩死敌人
+					Audio::GetInstance()->PlayWave(hitSoundHandle_, false); // 每次都播
+
+					// 玩家踩死敌人 → 添加死亡特效
+					DeathParticles* enemyDeath = new DeathParticles();
+					enemyDeath->Initialize(modelDeathParticle_, &camera_, enemy->GetWorldTransform().translation_);
+					enemyDeathParticles_.push_back(enemyDeath);
+
+					// 删除敌人
 					it = enemies_.erase(it);
 					delete enemy;
+
+					// 玩家反弹
 					model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
 					continue; // 跳过 it++
 				} else {
@@ -109,7 +115,7 @@ void GameScene::Update() {
 	} break;
 	case Phase::kDeathWait:
 		deathTimer_ += 1.0f / 60.0f;
-		if (deathTimer_ >= 2.0f) {
+		if (deathTimer_ >= 4.0f) {
 			phase_ = Phase::kFadeOutToTitle;
 			fade_->Start(Fade::Status::FadeOut, 1.0f);
 		}
@@ -130,6 +136,16 @@ void GameScene::Update() {
 
 	if (deathParticles_ && !deathParticles_->IsFinished())
 		deathParticles_->Update();
+	for (auto it = enemyDeathParticles_.begin(); it != enemyDeathParticles_.end();) {
+		DeathParticles* dp = *it;
+		dp->Update();
+		if (dp->IsFinished()) {
+			delete dp;
+			it = enemyDeathParticles_.erase(it);
+		} else {
+			++it;
+		}
+	}
 
 	for (auto& enemy : enemies_)
 		enemy->Update();
@@ -166,7 +182,6 @@ void GameScene::Update() {
 		fade_->Start(Fade::Status::FadeOut, kFadeOutToClear);
 	}
 
-
 	ChangePhase();
 }
 
@@ -198,6 +213,12 @@ void GameScene::Draw() {
 		skydome_->Draw(camera_);
 	if (deathParticles_ && !deathParticles_->IsFinished())
 		deathParticles_->Draw();
+	for (auto& dp : enemyDeathParticles_) {
+		if (dp && !dp->IsFinished()) {
+			dp->Draw();
+		}
+	}
+
 	for (auto& enemy : enemies_)
 		enemy->Draw();
 	for (const auto& line : worldTransformBlocks_)
@@ -249,6 +270,11 @@ GameScene::~GameScene() {
 		delete enemy;
 	enemies_.clear();
 	delete modelEnemy_;
+
+	for (DeathParticles* dp : enemyDeathParticles_) {
+		delete dp;
+	}
+	enemyDeathParticles_.clear();
 
 	for (auto& line : worldTransformBlocks_)
 		for (WorldTransform* block : line)

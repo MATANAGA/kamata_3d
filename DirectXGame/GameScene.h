@@ -53,6 +53,7 @@ private:
 	MapChipField* mapChipField_ = nullptr;
 	DeathParticles* deathParticles_ = nullptr;
 	Fade* fade_ = nullptr;
+	std::vector<DeathParticles*> enemyDeathParticles_;
 
 	std::vector<Enemy*> enemies_;
 
@@ -62,4 +63,6 @@ private:
 
 	uint32_t deathSoundHandle_ = 0; // 死亡音效
 	bool deathSoundPlayed_ = false;
+	uint32_t hitSoundHandle_ = 0; // 死亡音效
+	bool hitSoundPlayed_ = false;
 };
