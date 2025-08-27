@@ -53,10 +53,16 @@ private:
 
 	std::vector<Enemy*> enemies_;
 
-	// 音效
+	// 音声
+	uint32_t bgmHandle_ = 0; // 游戏 BGM
+	bool bgmPlaying_ = false;
+
 	uint32_t deathSoundHandle_ = 0; // 死亡音效
 	bool deathSoundPlayed_ = false;
-
-	uint32_t bgmHandle_ = 0; // BGM
-	bool bgmPlaying_ = false;
 };
+
+//#ifdef _DEBUG
+//if (Input::GetInstance()->TriggerKey(DIK_0)) {
+//	isDebugCameraActive_ = !isDebugCameraActive_;
+//}
+//#endif

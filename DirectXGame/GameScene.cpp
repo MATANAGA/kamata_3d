@@ -54,15 +54,17 @@ void GameScene::Initialize() {
 
 	// 加载死亡音效
 	deathSoundHandle_ = Audio::GetInstance()->LoadWave("go.wav");
+	deathSoundPlayed_ = false;
 
-	// 加载BGM
+	// 加载 BGM
 	bgmHandle_ = Audio::GetInstance()->LoadWave("game_bgm.mp3");
 	bgmPlaying_ = false;
 }
 
 void GameScene::Update() {
+	// 游戏 BGM 循环播放（只播放一次）
 	if (!bgmPlaying_) {
-		Audio::GetInstance()->PlayWave(bgmHandle_, true);
+		bgmHandle_ = Audio::GetInstance()->PlayWave(bgmHandle_, true);
 		bgmPlaying_ = true;
 	}
 
@@ -79,7 +81,6 @@ void GameScene::Update() {
 			}
 		}
 		break;
-
 	case Phase::kDeathWait:
 		deathTimer_ += 1.0f / 60.0f;
 		if (deathTimer_ >= 2.0f) {
@@ -87,12 +88,10 @@ void GameScene::Update() {
 			fade_->Start(Fade::Status::FadeOut, 1.0f);
 		}
 		break;
-
 	case Phase::kFadeOutToTitle:
 		fade_->Update();
-		if (!fade_->IsFading()) {
+		if (!fade_->IsFading())
 			finished_ = true;
-		}
 		break;
 	}
 
@@ -147,9 +146,8 @@ void GameScene::ChangePhase() {
 	if (phase_ == Phase::kDeathWait && !deathParticles_) {
 		deathParticles_ = new DeathParticles();
 		deathParticles_->Initialize(modelDeathParticle_, &camera_, model_->GetWorldTransform().translation_);
-		std::cout << "死亡粒子生成\n";
 
-		// 播放死亡音效
+		// 播放死亡音效一次
 		if (!deathSoundPlayed_) {
 			Audio::GetInstance()->PlayWave(deathSoundHandle_, false);
 			deathSoundPlayed_ = true;
@@ -202,6 +200,8 @@ void GameScene::GenerateBlocks() {
 }
 
 GameScene::~GameScene() {
+	if (bgmPlaying_)
+		Audio::GetInstance()->StopWave(bgmHandle_);
 	delete block_;
 	delete debugCamera_;
 	delete modelSkydome_;
@@ -213,7 +213,6 @@ GameScene::~GameScene() {
 	for (Enemy* enemy : enemies_)
 		delete enemy;
 	enemies_.clear();
-
 	delete modelEnemy_;
 
 	for (auto& line : worldTransformBlocks_)

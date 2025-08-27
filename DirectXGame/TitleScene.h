@@ -1,8 +1,7 @@
 ﻿#pragma once
 #include "Fade.h"
 #include "KamataEngine.h"
-#include <cassert>
-#include <iostream>
+#include <cstdint>
 
 class TitleScene {
 public:
@@ -21,6 +20,9 @@ public:
 	void Draw();
 	bool IsFinished() const { return finished_; }
 
+	// 音声停止
+	void StopBGM();
+
 private:
 	int frameCount_ = 0;
 	Fade* fade_ = nullptr;
@@ -31,6 +33,8 @@ private:
 	KamataEngine::WorldTransform worldTransform_;
 	KamataEngine::WorldTransform playerTransform_;
 	KamataEngine::ObjectColor objectColor_;
+
+	// BGMハンドル
 	uint32_t bgmHandle_ = 0;
 	bool bgmPlaying_ = false;
 };

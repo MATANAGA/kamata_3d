@@ -15,28 +15,33 @@ void TitleScene::Initialize() {
 	bgmHandle_ = Audio::GetInstance()->LoadWave("title_bgm.mp3");
 	bgmPlaying_ = false;
 
-	// 加载标题模型和玩家模型
+	// 加载模型
 	modelTitle_ = Model::CreateFromOBJ("titleFont");
 	modelPlayer_ = Model::CreateFromOBJ("player");
 
-	// 标题位置与缩放
+	// 标题
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = {0.0f, 7.0f, 0.0f};
 	worldTransform_.scale_ = {2.0f, 2.0f, 2.0f};
 
-	// 玩家位置与缩放
+	// 玩家
 	playerTransform_.Initialize();
-	playerTransform_.translation_ = {0.0f, -5.0f, 0.0f}; // 屏幕正中偏下
+	playerTransform_.translation_ = {0.0f, -5.0f, 0.0f};
 	playerTransform_.scale_ = {13.0f, 13.0f, 13.0f};
-	playerTransform_.rotation_.y = 3.14159f; // 180度
+	playerTransform_.rotation_.y = 3.14159f;
 
-	// 颜色
 	objectColor_.Initialize();
 	objectColor_.SetColor({1, 1, 1, 1});
 }
 
 void TitleScene::Update() {
 	frameCount_++;
+
+	// BGM循环播放
+	if (!bgmPlaying_) {
+		bgmHandle_ = Audio::GetInstance()->PlayWave(bgmHandle_, true); // 第二个参数 true 循环
+		bgmPlaying_ = true;
+	}
 
 	switch (phase_) {
 	case Phase::kFadeIn:
@@ -47,7 +52,6 @@ void TitleScene::Update() {
 			}
 		}
 		break;
-
 	case Phase::kMain:
 		if (Input::GetInstance()->PushKey(DIK_SPACE)) {
 			if (fade_) {
@@ -56,7 +60,6 @@ void TitleScene::Update() {
 			phase_ = Phase::kFadeOut;
 		}
 		break;
-
 	case Phase::kFadeOut:
 		if (fade_) {
 			fade_->Update();
@@ -67,14 +70,12 @@ void TitleScene::Update() {
 		break;
 	}
 
-	// 标题缩放动画
 	float scaleBase = 2.0f;
 	float scaleAmplitude = 0.5f;
 	float scaleSpeed = 0.05f;
 	float scale = scaleBase + scaleAmplitude * std::sin(frameCount_ * scaleSpeed);
 	worldTransform_.scale_ = {scale, scale, scale};
 
-	// 更新世界矩阵
 	worldTransform_.matWorld_ = MakeAffineMatrrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
 	worldTransform_.TransferMatrix();
 
@@ -83,36 +84,30 @@ void TitleScene::Update() {
 
 	camera_.UpdateMatrix();
 	camera_.TransferMatrix();
-
-	// 播放BGM（第一次播放）
-	if (!bgmPlaying_) {
-		Audio::GetInstance()->PlayWave(bgmHandle_, true); // 循环播放
-		bgmPlaying_ = true;
-	}
 }
 
 void TitleScene::Draw() {
 	Model::PreDraw(DirectXCommon::GetInstance()->GetCommandList());
 
-	if (modelTitle_) {
+	if (modelTitle_)
 		modelTitle_->Draw(worldTransform_, camera_, &objectColor_);
-	}
-	if (modelPlayer_) {
+	if (modelPlayer_)
 		modelPlayer_->Draw(playerTransform_, camera_, &objectColor_);
-	}
-
-	// Fade绘制
-	if (fade_) {
+	if (fade_)
 		fade_->Draw();
-	}
 
 	Model::PostDraw();
 }
 
-TitleScene::~TitleScene() {
-	// 停止BGM
-	Audio::GetInstance()->StopWave(bgmHandle_);
+void TitleScene::StopBGM() {
+	if (bgmPlaying_) {
+		Audio::GetInstance()->StopWave(bgmHandle_);
+		bgmPlaying_ = false;
+	}
+}
 
+TitleScene::~TitleScene() {
+	StopBGM();
 	delete modelTitle_;
 	delete modelPlayer_;
 	delete fade_;

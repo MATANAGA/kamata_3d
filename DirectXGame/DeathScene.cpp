@@ -1,4 +1,5 @@
 ﻿#include "DeathScene.h"
+#include "Fade.h"
 
 using namespace KamataEngine;
 
@@ -17,22 +18,22 @@ void DeathScene::Initialize() {
 	deathTextTransform_.translation_ = {0.0f, 3.0f, 0.0f};
 	deathTextTransform_.scale_ = {1.0f, 1.0f, 1.0f};
 
-	// 加载BGM
-	bgmHandle_ = Audio::GetInstance()->LoadWave("death_bgm.wav");
+	// 加载 BGM
+	bgmHandle_ = Audio::GetInstance()->LoadWave("dead_bgm.wav");
 	bgmPlaying_ = false;
 }
 
 void DeathScene::Update() {
 	timer_ += 1.0f / 60.0f;
 
+	// BGM 循环播放
 	if (!bgmPlaying_) {
-		Audio::GetInstance()->PlayWave(bgmHandle_, true);
+		bgmHandle_ = Audio::GetInstance()->PlayWave(bgmHandle_, true);
 		bgmPlaying_ = true;
 	}
 
 	if (fade_)
 		fade_->Update();
-
 	if (timer_ >= kWaitTime)
 		finished_ = true;
 
@@ -49,8 +50,15 @@ void DeathScene::Draw() {
 	Model::PostDraw();
 }
 
+void DeathScene::StopBGM() {
+	if (bgmPlaying_) {
+		Audio::GetInstance()->StopWave(bgmHandle_);
+		bgmPlaying_ = false;
+	}
+}
+
 DeathScene::~DeathScene() {
-	Audio::GetInstance()->StopWave(bgmHandle_);
+	StopBGM();
 	delete deathTextModel_;
 	delete fade_;
 }
