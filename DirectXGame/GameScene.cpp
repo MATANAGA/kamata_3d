@@ -32,6 +32,11 @@ void GameScene::Initialize() {
 	    mapChipField_->GetMapChipPositionByIndex(15, 1),
 	    mapChipField_->GetMapChipPositionByIndex(12, 1),
 	    mapChipField_->GetMapChipPositionByIndex(25, 8),
+		mapChipField_->GetMapChipPositionByIndex(32, 10), 
+		mapChipField_->GetMapChipPositionByIndex(12, 6),
+	    mapChipField_->GetMapChipPositionByIndex(12, 6), 
+		mapChipField_->GetMapChipPositionByIndex(40, 2),
+
 
 	};
 	for (const auto& pos : enemyPositions) {
