@@ -3,7 +3,6 @@
 using namespace KamataEngine;
 
 void Skydome::Initialize() {
-	skydome_ = KamataEngine::Model::CreateFromOBJ("SkyDome");
 	worldTransform_.Initialize();
 }	
 

@@ -10,8 +10,14 @@ void GameScene::Initialize() {
 
 	debugCamera_ = new DebugCamera(1280, 720);
 
-	skydome_ = new Skydome();
-	skydome_->Initialize();
+	// 天球模型初始化
+	modelSkydomeNormal_ = KamataEngine::Model::CreateFromOBJ("SkyDome");
+	modelSkydomeSpecial_ = KamataEngine::Model::CreateFromOBJ("SkyDomeSpecial"); // 另一种天球
+	skydomeTransform_.Initialize();
+
+	// 根据模式选择当前天球
+	currentSkydomeModel_ = skydomeSpecialMode_ ? modelSkydomeSpecial_ : modelSkydomeNormal_;
+	skydomeTransform_.Initialize();
 
 	mapChipField_ = new MapChipField;
 	mapChipField_->LoadMapChipCsv("Resources/blocks.csv");
@@ -29,7 +35,6 @@ void GameScene::Initialize() {
 		model_->Initialize(modelPlayerNormal_, &camera_, playerPosition);
 	}
 	modelDeathParticle_ = Model::CreateFromOBJ("deathParticle");
-
 
 	// 敌人初始化
 	modelEnemy_ = Model::CreateFromOBJ("kunBall");
@@ -58,7 +63,6 @@ void GameScene::Initialize() {
 		enemyB->Initialize(modelEnemyB_, &camera_, pos);
 		enemiesB_.push_back(enemyB);
 	}
-
 
 	model_->SetMapChipField(mapChipField_);
 
@@ -94,12 +98,18 @@ void GameScene::Update() {
 		bgmPlaying_ = true;
 	}
 	// GameScene.cpp Update()
+	// 按键切换玩家模型
 	if (Input::GetInstance()->TriggerKey(DIK_1)) {
 		model_->SetModel(modelPlayerNormal_);
+		currentSkydomeModel_ = modelSkydomeNormal_; // 切换到普通天球
+		skydomeSpecialMode_ = false;
 	}
 	if (Input::GetInstance()->TriggerKey(DIK_2)) {
 		model_->SetModel(modelPlayerDead_);
+		currentSkydomeModel_ = modelSkydomeSpecial_; // 切换到特殊天球
+		skydomeSpecialMode_ = true;
 	}
+
 
 #ifdef _DEBUG
 	if (Input::GetInstance()->TriggerKey(DIK_0)) {
@@ -235,8 +245,9 @@ void GameScene::Update() {
 		cameraPos = camera_.translation_;
 	}
 
-	if (skydome_)
-		skydome_->Update(cameraPos);
+	skydomeTransform_.translation_ = camera_.translation_; // 跟随相机
+	skydomeTransform_.matWorld_ = MakeAffineMatrrix(skydomeTransform_.scale_, skydomeTransform_.rotation_, skydomeTransform_.translation_);
+	skydomeTransform_.TransferMatrix();
 
 	if (phase_ == Phase::kPlay && enemies_.empty()) {
 		phase_ = Phase::kFadeOutToTitle; // 改为淡出到标题
@@ -271,8 +282,9 @@ void GameScene::Draw() {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	KamataEngine::Model::PreDraw(dxCommon->GetCommandList());
 
-	if (skydome_)
-		skydome_->Draw(camera_);
+	if (currentSkydomeModel_)
+		currentSkydomeModel_->Draw(skydomeTransform_, camera_);
+
 	if (deathParticles_ && !deathParticles_->IsFinished())
 		deathParticles_->Draw();
 	for (auto& dp : enemyDeathParticles_) {
@@ -332,6 +344,8 @@ GameScene::~GameScene() {
 	delete deathParticles_;
 	delete modelPlayerNormal_;
 	delete modelPlayerDead_;
+	delete modelSkydomeNormal_;
+	delete modelSkydomeSpecial_;
 
 	for (Enemy* enemy : enemies_)
 		delete enemy;
