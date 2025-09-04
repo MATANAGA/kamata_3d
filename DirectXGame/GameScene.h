@@ -3,6 +3,7 @@
 #include "CameraController.h"
 #include "DeathParticels.h"
 #include "Enemy.h"
+#include "EnemyB.h"
 #include "Fade.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
@@ -44,7 +45,10 @@ public:
 private:
 	bool finished_ = false;
 	float deathTimer_ = 0.0f;
-
+	std::vector<EnemyB*> enemiesB_; // EnemyB 容器
+	KamataEngine::Model* modelEnemyB_ = nullptr;
+	Model* modelPlayerNormal_ = nullptr;
+	Model* modelPlayerDead_ = nullptr;
 	CameraController* cameraController_ = nullptr;
 	KamataEngine::Camera camera_;
 	Player* model_ = nullptr;
@@ -65,4 +69,6 @@ private:
 	bool deathSoundPlayed_ = false;
 	uint32_t hitSoundHandle_ = 0; // 死亡音效
 	bool hitSoundPlayed_ = false;
+
+	bool deadMode = false;
 };

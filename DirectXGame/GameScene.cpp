@@ -20,10 +20,16 @@ void GameScene::Initialize() {
 	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(5, 8);
 
 	model_ = new Player();
-	modelPlayer_ = Model::CreateFromOBJ("player");
+	modelPlayerNormal_ = Model::CreateFromOBJ("player");
+	modelPlayerDead_ = Model::CreateFromOBJ("player2");
+
+	if (deadMode) {
+		model_->Initialize(modelPlayerDead_, &camera_, playerPosition);
+	} else {
+		model_->Initialize(modelPlayerNormal_, &camera_, playerPosition);
+	}
 	modelDeathParticle_ = Model::CreateFromOBJ("deathParticle");
 
-	model_->Initialize(modelPlayer_, &camera_, playerPosition);
 
 	// 敌人初始化
 	modelEnemy_ = Model::CreateFromOBJ("kunBall");
@@ -38,6 +44,21 @@ void GameScene::Initialize() {
 		enemy->Initialize(modelEnemy_, &camera_, pos);
 		enemies_.push_back(enemy);
 	}
+
+	// EnemyB 初始化
+	modelEnemyB_ = Model::CreateFromOBJ("enemyB"); // OBJ 文件名
+
+	std::vector<Vector3> enemyBPositions = {
+	    mapChipField_->GetMapChipPositionByIndex(10, 5), mapChipField_->GetMapChipPositionByIndex(15, 7)
+	    // 根据地图位置添加
+	};
+
+	for (const auto& pos : enemyBPositions) {
+		EnemyB* enemyB = new EnemyB();
+		enemyB->Initialize(modelEnemyB_, &camera_, pos);
+		enemiesB_.push_back(enemyB);
+	}
+
 
 	model_->SetMapChipField(mapChipField_);
 
@@ -72,6 +93,14 @@ void GameScene::Update() {
 		bgmHandle_ = Audio::GetInstance()->PlayWave(bgmHandle_, true);
 		bgmPlaying_ = true;
 	}
+	// GameScene.cpp Update()
+	if (Input::GetInstance()->TriggerKey(DIK_1)) {
+		model_->SetModel(modelPlayerNormal_);
+	}
+	if (Input::GetInstance()->TriggerKey(DIK_2)) {
+		model_->SetModel(modelPlayerDead_);
+	}
+
 #ifdef _DEBUG
 	if (Input::GetInstance()->TriggerKey(DIK_0)) {
 		isDebugCameraActive_ = !isDebugCameraActive_;
@@ -112,6 +141,36 @@ void GameScene::Update() {
 			}
 			++it;
 		}
+		// EnemyB 碰撞
+		for (auto it = enemiesB_.begin(); it != enemiesB_.end();) {
+			EnemyB* enemyB = *it;
+			if (enemyB->CheckCollisionWithPlayer(*model_)) {
+				const auto& playerPos = model_->GetWorldTransform().translation_;
+				const auto& enemyPos = enemyB->GetWorldTransform().translation_;
+				bool stomped = (model_->velocity_.y < 0) && (playerPos.y > enemyPos.y + EnemyB::kHeight / 2.0f);
+
+				if (stomped) {
+					Audio::GetInstance()->PlayWave(hitSoundHandle_, false);
+
+					DeathParticles* enemyDeath = new DeathParticles();
+					enemyDeath->Initialize(modelDeathParticle_, &camera_, enemyB->GetWorldTransform().translation_);
+					enemyDeathParticles_.push_back(enemyDeath);
+
+					it = enemiesB_.erase(it);
+					delete enemyB;
+
+					model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
+					continue;
+				} else {
+					model_->SetAlive(false);
+					phase_ = Phase::kDeathWait;
+					deathTimer_ = 0.0f;
+					break;
+				}
+			}
+			++it;
+		}
+
 	} break;
 	case Phase::kDeathWait:
 		deathTimer_ += 1.0f / 60.0f;
@@ -149,6 +208,9 @@ void GameScene::Update() {
 
 	for (auto& enemy : enemies_)
 		enemy->Update();
+	for (auto& enemyB : enemiesB_) {
+		enemyB->Update();
+	}
 
 	for (const auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {
@@ -221,6 +283,9 @@ void GameScene::Draw() {
 
 	for (auto& enemy : enemies_)
 		enemy->Draw();
+	for (auto& enemyB : enemiesB_)
+		enemyB->Draw();
+
 	for (const auto& line : worldTransformBlocks_)
 		for (WorldTransform* blockTransform : line)
 			if (blockTransform)
@@ -265,11 +330,17 @@ GameScene::~GameScene() {
 	delete model_;
 	delete mapChipField_;
 	delete deathParticles_;
+	delete modelPlayerNormal_;
+	delete modelPlayerDead_;
 
 	for (Enemy* enemy : enemies_)
 		delete enemy;
 	enemies_.clear();
 	delete modelEnemy_;
+	for (EnemyB* enemyB : enemiesB_)
+		delete enemyB;
+	enemiesB_.clear();
+	delete modelEnemyB_;
 
 	for (DeathParticles* dp : enemyDeathParticles_) {
 		delete dp;

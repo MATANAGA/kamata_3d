@@ -38,6 +38,8 @@ public:
 	void Draw();
 	enum Corner { kRightBottom, kLeftBottom, kRightTop, kLeftTop, kNumCorner };
 	KamataEngine::Vector3 CornerPosition(const KamataEngine::Vector3& center, Corner corner);
+	// 新增：切换皮肤（替换玩家使用的模型）
+	void SetModel(KamataEngine::Model* model) { model_ = model; }
 
 private:
 	bool alive_ = true;
@@ -53,6 +55,7 @@ private:
 		bool hitWall = false;
 		KamataEngine::Vector3 move;
 	};
+	bool jumpKeyPrev_ = false; // 上一帧是否按下了跳跃键
 
 	void InputMove();
 	void CheckMapCollision(CollisionMapInfo& info);

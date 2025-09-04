@@ -4,6 +4,7 @@
 #include "MyMath.h"
 #include <algorithm>
 #include <numbers>
+#include <cassert>
 
 using namespace KamataEngine;
 using namespace MathUtility;
@@ -55,7 +56,7 @@ void Player::InputMove() {
 	Vector3 acceleration = {};
 
 	// 左右移动：无论空中还是地面都接受输入，区别在于加速度大小
-	float currentAcceleration = onGround_ ? kAcceleration : kAcceleration * 0.05f; // 空中加速减半例子
+	float currentAcceleration = onGround_ ? kAcceleration : kAcceleration * 2.0f; // 空中加速减半例子
 
 	if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
 		if (lrdirection_ != LRDirection::kRight) {
@@ -86,6 +87,7 @@ void Player::InputMove() {
 	velocity_.x = std::clamp(velocity_.x, -kMaxSpeed, kMaxSpeed);
 
 	// 跳跃输入（只有地面时可以跳）
+
 	if (onGround_ && Input::GetInstance()->PushKey(DIK_UP)) {
 		velocity_ += Vector3(0, kJumpAcceleration, 0);
 		onGround_ = false; // 跳跃中切换为非接地状态
