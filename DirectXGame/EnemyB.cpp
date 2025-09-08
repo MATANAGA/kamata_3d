@@ -40,22 +40,18 @@ void EnemyB::Update() {
 	}
 
 	// --- 软约束：地图边界检测 ---
-	float mapWidth = MapChipField::kNumBlockHorizontal * MapChipField::kBlockWidth;
-	float mapHeight = MapChipField::kNumBlockVirtical * MapChipField::kBlockHeight;
+	const float mapWidth = 25.0f;
+	const float mapHeight = 10.0f;
 
 	const float margin = 1.0f; // 边界安全距离
 
-	if (worldTransform_.translation_.x < margin) {
-		targetVelocity_.x = std::abs(targetVelocity_.x); // 往右
-	} else if (worldTransform_.translation_.x > mapWidth - margin) {
-		targetVelocity_.x = -std::abs(targetVelocity_.x); // 往左
+	if (worldTransform_.translation_.x <= margin || worldTransform_.translation_.x >= mapWidth - margin) {
+		velocity_.x = -velocity_.x; // 直接反转速度
+	}
+	if (worldTransform_.translation_.y <= margin || worldTransform_.translation_.y >= mapHeight - margin) {
+		velocity_.y = -velocity_.y;
 	}
 
-	if (worldTransform_.translation_.y < margin) {
-		targetVelocity_.y = std::abs(targetVelocity_.y); // 往上
-	} else if (worldTransform_.translation_.y > mapHeight - margin) {
-		targetVelocity_.y = -std::abs(targetVelocity_.y); // 往下
-	}
 
 	// --- 平滑插值到目标速度 ---
 	float t = 0.02f; // 插值系数

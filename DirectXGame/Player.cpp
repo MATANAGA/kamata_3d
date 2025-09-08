@@ -392,5 +392,9 @@ void Player::CheckMapCollisionLeft(CollisionMapInfo& info) {
 		info.hitWall = true;
 	}
 }
-
+void Player::SetPosition(const KamataEngine::Vector3& pos) {
+	worldTransform_.translation_ = pos;
+	worldTransform_.matWorld_ = MakeAffineMatrrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
+	worldTransform_.TransferMatrix();
+}
 Player::~Player() {}

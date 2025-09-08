@@ -56,11 +56,16 @@ public:
 	bool skydomeSpecialMode_ = false; // 是否使用特殊天球
 
 private:
+	int remainingEnemies_ = 0;
+
 	// 玩家模型与天球切换用
 	enum class SwitchPhase { None, FadingOut, FadingIn };
 	SwitchPhase switchPhase_ = SwitchPhase::None;
 	bool nextSpecialMode_ = false; // 记录要切换到的模式
-	int playerLives_ = 3;          // 玩家初始残机数
+	int playerLives_ = 5;          // 玩家初始残机数
+	std::vector<Player*> lifeIcons_; // 存放残机 UI 模型
+	int maxLives_ = 5;               // 最大残机数
+
 	float gameOverTimer_ = 0.0f;   // Game Over 延迟计时
 	bool isGameOverDelayed_ = false; // 标记残机归零后等待进入 Game Over
 
@@ -89,6 +94,9 @@ private:
 	bool deathSoundPlayed_ = false;
 	uint32_t hitSoundHandle_ = 0; // 死亡音效
 	bool hitSoundPlayed_ = false;
+
+	uint32_t haSoundHandle_ = 0; // 死亡音效
+	bool haSoundPlayed_ = false;
 
 	bool deadMode = false;
 };

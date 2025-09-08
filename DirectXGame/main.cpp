@@ -124,7 +124,7 @@ void DrawScene() {
 }
 
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
-	KamataEngine::Initialize(L"GC2C_01_エイハツ_KunBall");
+	KamataEngine::Initialize(L"6041_生者と幽魂の間");
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
 	// 初始场景 Title

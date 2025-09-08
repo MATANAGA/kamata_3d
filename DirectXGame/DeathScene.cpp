@@ -19,7 +19,7 @@ void DeathScene::Initialize() {
 	deathTextTransform_.scale_ = {1.0f, 1.0f, 1.0f};
 
 	// 加载 BGM
-	bgmHandle_ = Audio::GetInstance()->LoadWave("dead_bgm.wav");
+	bgmHandle_ = Audio::GetInstance()->LoadWave("luo.wav");
 	bgmPlaying_ = false;
 }
 

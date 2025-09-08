@@ -34,20 +34,22 @@ void GameScene::Initialize() {
 	} else {
 		model_->Initialize(modelPlayerNormal_, &camera_, playerPosition);
 	}
-	modelDeathParticle_ = Model::CreateFromOBJ("player");
+	modelDeathParticle_ = Model::CreateFromOBJ("playerDead");
 
 	// 敌人 A 死亡特效模型
-	modelEnemyADeath_ = Model::CreateFromOBJ("kunBall");
+	modelEnemyADeath_ = Model::CreateFromOBJ("zonbiface");
 
 	// 敌人 B 死亡特效模型
 	modelEnemyBDeath_ = Model::CreateFromOBJ("gost");
 
 	// 敌人初始化
-	modelEnemy_ = Model::CreateFromOBJ("kunBall");
+	modelEnemy_ = Model::CreateFromOBJ("zonbiface");
 	std::vector<Vector3> enemyPositions = {
-	    mapChipField_->GetMapChipPositionByIndex(50, 1), mapChipField_->GetMapChipPositionByIndex(55, 1),  mapChipField_->GetMapChipPositionByIndex(12, 1),
-	    mapChipField_->GetMapChipPositionByIndex(25, 8), mapChipField_->GetMapChipPositionByIndex(32, 10), mapChipField_->GetMapChipPositionByIndex(12, 6),
-	    mapChipField_->GetMapChipPositionByIndex(32, 8), mapChipField_->GetMapChipPositionByIndex(40, 2),
+		mapChipField_->GetMapChipPositionByIndex(12, 1),
+	    mapChipField_->GetMapChipPositionByIndex(25, 8), 
+		mapChipField_->GetMapChipPositionByIndex(12, 6),
+	    mapChipField_->GetMapChipPositionByIndex(32, 8), 
+		mapChipField_->GetMapChipPositionByIndex(40, 2),
 
 	};
 	for (const auto& pos : enemyPositions) {
@@ -55,12 +57,17 @@ void GameScene::Initialize() {
 		enemy->Initialize(modelEnemy_, &camera_, pos);
 		enemies_.push_back(enemy);
 	}
+	remainingEnemies_ += static_cast<int>(enemyPositions.size());
 
 	// EnemyB 初始化
 	modelEnemyB_ = Model::CreateFromOBJ("gost"); // OBJ 文件名
 
 	std::vector<Vector3> enemyBPositions = {
-	    mapChipField_->GetMapChipPositionByIndex(10, 5), mapChipField_->GetMapChipPositionByIndex(15, 7)
+	    mapChipField_->GetMapChipPositionByIndex(10, 5),
+		mapChipField_->GetMapChipPositionByIndex(15, 1), 
+		mapChipField_->GetMapChipPositionByIndex(18, 3),
+	    mapChipField_->GetMapChipPositionByIndex(21, 4), 
+		mapChipField_->GetMapChipPositionByIndex(23, 5), 
 	    // 根据地图位置添加
 	};
 
@@ -69,6 +76,7 @@ void GameScene::Initialize() {
 		enemyB->Initialize(modelEnemyB_, &camera_, pos);
 		enemiesB_.push_back(enemyB);
 	}
+	remainingEnemies_ += static_cast<int>(enemyBPositions.size());
 
 	model_->SetMapChipField(mapChipField_);
 
@@ -86,15 +94,19 @@ void GameScene::Initialize() {
 	deathParticles_ = nullptr;
 
 	// 加载死亡音效
-	deathSoundHandle_ = Audio::GetInstance()->LoadWave("niganma.mp3");
+	deathSoundHandle_ = Audio::GetInstance()->LoadWave("dead_bgm.wav");
 	deathSoundPlayed_ = false;
 	// 加载死亡音效
-	hitSoundHandle_ = Audio::GetInstance()->LoadWave("go.wav");
+	hitSoundHandle_ = Audio::GetInstance()->LoadWave("2f.wav");
 	hitSoundPlayed_ = false;
 
 	// 加载 BGM
-	bgmHandle_ = Audio::GetInstance()->LoadWave("game_bgm.mp3");
+	bgmHandle_ = Audio::GetInstance()->LoadWave("title_bgm.wav");
 	bgmPlaying_ = false;
+
+	// 加载 BGM
+	haSoundHandle_ = Audio::GetInstance()->LoadWave("clear_bgm.wav");
+	haSoundPlayed_ = false;
 }
 
 void GameScene::Update() {
@@ -106,20 +118,26 @@ void GameScene::Update() {
 	// GameScene.cpp Update()
 	// 按键切换玩家模型
 	// 按键请求切换（触发淡出）
-	if (Input::GetInstance()->TriggerKey(DIK_1)) {
-		if (!fade_->IsFading() && switchPhase_ == SwitchPhase::None) {
-			nextSpecialMode_ = false; // 普通模式
+	// 模式切换按键
+	if (!fade_->IsFading() && switchPhase_ == SwitchPhase::None) {
+		if (Input::GetInstance()->TriggerKey(DIK_1) && skydomeSpecialMode_) {
+			// 当前是特殊模式 → 切换到普通模式
+			nextSpecialMode_ = false;
+			Audio::GetInstance()->PlayWave(haSoundHandle_, false);
+
+			fade_->Start(Fade::Status::FadeOut, 0.5f);
+			switchPhase_ = SwitchPhase::FadingOut;
+		}
+		if (Input::GetInstance()->TriggerKey(DIK_2) && !skydomeSpecialMode_) {
+			// 当前是普通模式 → 切换到特殊模式
+			nextSpecialMode_ = true;
+			Audio::GetInstance()->PlayWave(haSoundHandle_, false);
+
 			fade_->Start(Fade::Status::FadeOut, 0.5f);
 			switchPhase_ = SwitchPhase::FadingOut;
 		}
 	}
-	if (Input::GetInstance()->TriggerKey(DIK_2)) {
-		if (!fade_->IsFading() && switchPhase_ == SwitchPhase::None) {
-			nextSpecialMode_ = true; // 特殊模式
-			fade_->Start(Fade::Status::FadeOut, 0.5f);
-			switchPhase_ = SwitchPhase::FadingOut;
-		}
-	}
+
 
 	// Fade 切换逻辑
 	if (switchPhase_ == SwitchPhase::FadingOut && !fade_->IsFading()) {
@@ -169,6 +187,8 @@ void GameScene::Update() {
 						enemyDeathParticles_.push_back(enemyDeath);
 
 						enemy->isAlive_ = false;
+						remainingEnemies_--; // 敌人数量 -1
+
 						model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
 					} else {
 						// 玩家死亡
@@ -216,6 +236,8 @@ void GameScene::Update() {
 						enemyDeathParticles_.push_back(enemyDeath);
 
 						enemyB->isAlive_ = false;
+						remainingEnemies_--; // 敌人数量 -1
+
 						model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
 					} else {
 						// 玩家死亡
@@ -345,11 +367,12 @@ void GameScene::Update() {
 	skydomeTransform_.matWorld_ = MakeAffineMatrrix(skydomeTransform_.scale_, skydomeTransform_.rotation_, skydomeTransform_.translation_);
 	skydomeTransform_.TransferMatrix();
 
-	if (phase_ == Phase::kPlay && enemies_.empty()) {
-		phase_ = Phase::kFadeOutToTitle; // 改为淡出到标题
-		fadeTimer_ = 0.0f;               // 重置计时器
+	if (phase_ == Phase::kPlay && remainingEnemies_ == 0) {
+		phase_ = Phase::kFadeOutToTitle;
+		fadeTimer_ = 0.0f;
 		fade_->Start(Fade::Status::FadeOut, kFadeOutToClear);
 	}
+
 
 	ChangePhase();
 }
