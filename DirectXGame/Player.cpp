@@ -9,6 +9,14 @@
 using namespace KamataEngine;
 using namespace MathUtility;
 
+void Player::Reset(const KamataEngine::Vector3& pos) {
+	// 把玩家位置放到复活点
+	worldTransform_.translation_ = pos;
+	// 清空速度
+	velocity_ = {0.0f, 0.0f, 0.0f};
+	// 确保玩家是活着的
+	SetAlive(true);
+}
 void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
 	assert(model);
 	model_ = model;

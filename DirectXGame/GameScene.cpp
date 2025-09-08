@@ -141,8 +141,6 @@ void GameScene::Update() {
 		switchPhase_ = SwitchPhase::None;
 	}
 
-
-
 #ifdef _DEBUG
 	if (Input::GetInstance()->TriggerKey(DIK_0)) {
 		isDebugCameraActive_ = !isDebugCameraActive_;
@@ -151,103 +149,122 @@ void GameScene::Update() {
 
 	switch (phase_) {
 	case Phase::kPlay: {
-		for (auto it = enemies_.begin(); it != enemies_.end();) {
-			Enemy* enemy = *it;
+		// EnemyA 碰撞
+		for (auto& enemy : enemies_) {
+			if (!enemy->isAlive_)
+				continue;
+
 			if (enemy->CheckCollisionWithPlayer(*model_)) {
 				const auto& playerPos = model_->GetWorldTransform().translation_;
 				const auto& enemyPos = enemy->GetWorldTransform().translation_;
-				bool stomped = (model_->velocity_.y < 0) && (playerPos.y > enemyPos.y + Enemy::kHeight / 2.0f);
 
-				if (stomped) {
-					Audio::GetInstance()->PlayWave(hitSoundHandle_, false);
+				// 模式判断：只有普通模式才能击败 EnemyA
+				if (!skydomeSpecialMode_) {
+					bool stomped = (model_->velocity_.y < 0) && (playerPos.y > enemyPos.y + Enemy::kHeight / 2.0f);
+					if (stomped) {
+						Audio::GetInstance()->PlayWave(hitSoundHandle_, false);
 
-					DeathParticles* enemyDeath = new DeathParticles();
-					// 使用敌人 A 的死亡特效模型
-					enemyDeath->Initialize(modelEnemyADeath_, &camera_, enemy->GetWorldTransform().translation_);
-					enemyDeathParticles_.push_back(enemyDeath);
+						DeathParticles* enemyDeath = new DeathParticles();
+						enemyDeath->Initialize(modelEnemyADeath_, &camera_, enemy->GetWorldTransform().translation_);
+						enemyDeathParticles_.push_back(enemyDeath);
 
-					it = enemies_.erase(it);
-					delete enemy;
-
-					model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
-					continue;
+						enemy->isAlive_ = false;
+						model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
+					} else {
+						// 玩家死亡
+						model_->SetAlive(false);
+						playerLives_--;
+						phase_ = Phase::kDeathWait;
+						deathTimer_ = 0.0f;
+						if (playerLives_ <= 0) {
+							isGameOverDelayed_ = true;
+							gameOverTimer_ = 0.0f;
+						}
+					}
 				} else {
-					// 玩家被碰到 → 死亡
+					// 模式不对，踩敌人直接死亡
 					model_->SetAlive(false);
+					playerLives_--;
 					phase_ = Phase::kDeathWait;
 					deathTimer_ = 0.0f;
-					break;
+					if (playerLives_ <= 0) {
+						isGameOverDelayed_ = true;
+						gameOverTimer_ = 0.0f;
+					}
 				}
-				
+				break;
 			}
-			++it;
-		}
-		for (auto it = enemies_.begin(); it != enemies_.end();) {
-			Enemy* enemy = *it; // <- 这里定义指针
-			if (enemy->CheckCollisionWithPlayer(*model_)) {
-				const auto& playerPos = model_->GetWorldTransform().translation_;
-				const auto& enemyPos = enemy->GetWorldTransform().translation_;
-				bool stomped = (model_->velocity_.y < 0) && (playerPos.y > enemyPos.y + EnemyB::kHeight / 2.0f);
-
-				if (stomped) {
-					Audio::GetInstance()->PlayWave(hitSoundHandle_, false);
-
-					DeathParticles* enemyDeath = new DeathParticles();
-					enemyDeath->Initialize(modelEnemyBDeath_, &camera_, enemy->GetWorldTransform().translation_);
-					enemyDeathParticles_.push_back(enemyDeath);
-
-					enemy->isAlive_ = false; // 不删除，只是设为死亡
-					model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
-
-					++it; // 不 erase，就正常 ++
-					continue;
-				} else {
-					model_->SetAlive(false);
-					phase_ = Phase::kDeathWait;
-					deathTimer_ = 0.0f;
-					break;
-				}
-			}
-			++it; // <- 正确递增迭代器
 		}
 
 		// EnemyB 碰撞
-		for (auto it = enemiesB_.begin(); it != enemiesB_.end();) {
-			EnemyB* enemyB = *it;
+		for (auto& enemyB : enemiesB_) {
+			if (!enemyB->isAlive_)
+				continue;
+
 			if (enemyB->CheckCollisionWithPlayer(*model_)) {
 				const auto& playerPos = model_->GetWorldTransform().translation_;
 				const auto& enemyPos = enemyB->GetWorldTransform().translation_;
-				bool stomped = (model_->velocity_.y < 0) && (playerPos.y > enemyPos.y + EnemyB::kHeight / 2.0f);
-				if (stomped) {
-					Audio::GetInstance()->PlayWave(hitSoundHandle_, false);
 
-					DeathParticles* enemyDeath = new DeathParticles();
-					enemyDeath->Initialize(modelEnemyBDeath_, &camera_, enemyB->GetWorldTransform().translation_);
-					enemyDeathParticles_.push_back(enemyDeath);
+				// 模式判断：只有特殊模式才能击败 EnemyB
+				if (skydomeSpecialMode_) {
+					bool stomped = (model_->velocity_.y < 0) && (playerPos.y > enemyPos.y + EnemyB::kHeight / 2.0f);
+					if (stomped) {
+						Audio::GetInstance()->PlayWave(hitSoundHandle_, false);
 
-					enemyB->isAlive_ = false; // 不删除，只是设为死亡
-					model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
+						DeathParticles* enemyDeath = new DeathParticles();
+						enemyDeath->Initialize(modelEnemyBDeath_, &camera_, enemyB->GetWorldTransform().translation_);
+						enemyDeathParticles_.push_back(enemyDeath);
 
-					++it; // 不 erase，就正常 ++
-					continue;
+						enemyB->isAlive_ = false;
+						model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
+					} else {
+						// 玩家死亡
+						model_->SetAlive(false);
+						playerLives_--;
+						phase_ = Phase::kDeathWait;
+						deathTimer_ = 0.0f;
+						if (playerLives_ <= 0) {
+							isGameOverDelayed_ = true;
+							gameOverTimer_ = 0.0f;
+						}
+					}
 				} else {
+					// 模式不对，碰敌人直接死亡
 					model_->SetAlive(false);
+					playerLives_--;
 					phase_ = Phase::kDeathWait;
 					deathTimer_ = 0.0f;
-					break;
+					if (playerLives_ <= 0) {
+						isGameOverDelayed_ = true;
+						gameOverTimer_ = 0.0f;
+					}
 				}
+				break;
 			}
-			++it;
 		}
 
 	} break;
 	case Phase::kDeathWait:
 		deathTimer_ += 1.0f / 60.0f;
-		if (deathTimer_ >= 4.0f) {
-			phase_ = Phase::kFadeOutToTitle;
-			fade_->Start(Fade::Status::FadeOut, 1.0f);
+		if (deathTimer_ >= 2.0f) { // 死亡动画播放 2 秒
+			if (playerLives_ > 0) {
+				// 玩家复活
+				Vector3 respawnPos = mapChipField_->GetMapChipPositionByIndex(5, 8);
+				model_->Reset(respawnPos);
+				model_->SetAlive(true);
+				phase_ = Phase::kPlay;
+				deathSoundPlayed_ = false;
+				deathParticles_ = nullptr;
+			} else {
+				// 残机为0 → Game Over
+				phase_ = Phase::kFadeOutToTitle;
+				fade_->Start(Fade::Status::FadeOut, 1.0f);
+				deathParticles_ = nullptr;
+				std::cout << "Game Over" << std::endl;
+			}
 		}
 		break;
+
 	case Phase::kFadeOutToTitle:
 		fade_->Update();
 		if (!fade_->IsFading())
@@ -280,14 +297,11 @@ void GameScene::Update() {
 			enemy->Update();
 		}
 	}
-
-	
 	for (auto& enemyB : enemiesB_) {
 		if (enemyB->isAlive_) {
 			enemyB->Update();
 		}
 	}
-
 
 	for (const auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {
@@ -295,6 +309,21 @@ void GameScene::Update() {
 				continue;
 			block->matWorld_ = MakeAffineMatrrix(block->scale_, block->rotation_, block->translation_);
 			block->TransferMatrix();
+		}
+	}
+	if (playerLives_ <= 0) {
+		// 没残机 → 延迟进入 GameOver
+		isGameOverDelayed_ = true; // 标记延迟状态
+		gameOverTimer_ = 0.0f;     // 重置计时
+	}
+	if (isGameOverDelayed_) {
+		gameOverTimer_ += 1.0f / 60.0f; // 每帧累加
+		if (gameOverTimer_ >= 3.0f) {   // 3秒后正式进入 Game Over
+			phase_ = Phase::kFadeOutToTitle;
+			fade_->Start(Fade::Status::FadeOut, 1.0f);
+			isGameOverDelayed_ = false;
+			finished_ = true; // 标记场景结束
+			std::cout << "Game Over" << std::endl;
 		}
 	}
 
@@ -365,13 +394,11 @@ void GameScene::Draw() {
 			enemy->Draw();
 		}
 	}
-
 	for (auto& enemyB : enemiesB_) {
 		if (enemyB->isAlive_) {
 			enemyB->Draw();
 		}
 	}
-
 
 	for (const auto& line : worldTransformBlocks_)
 		for (WorldTransform* blockTransform : line)

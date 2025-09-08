@@ -21,6 +21,9 @@ public:
 	~Player();
 	void SetAlive(bool alive) { alive_ = alive; }
 	bool IsAlive() const { return alive_; }
+	// 复活用：重置玩家位置和速度
+	void Reset(const KamataEngine::Vector3& pos);
+
 
 	KamataEngine::Vector3 velocity_{};
 	static inline const float kAcceleration = 0.01f;

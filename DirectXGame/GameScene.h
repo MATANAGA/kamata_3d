@@ -15,7 +15,7 @@
 #include <vector>
 
 class GameScene {
-	enum class Phase { kPlay, kDeathWait, kFadeOutToTitle };
+	enum class Phase { kPlay, kDeathWait, kFadeOutToTitle, kNone, kGameOverDelay };
 
 	Phase phase_;
 
@@ -60,6 +60,10 @@ private:
 	enum class SwitchPhase { None, FadingOut, FadingIn };
 	SwitchPhase switchPhase_ = SwitchPhase::None;
 	bool nextSpecialMode_ = false; // 记录要切换到的模式
+	int playerLives_ = 3;          // 玩家初始残机数
+	float gameOverTimer_ = 0.0f;   // Game Over 延迟计时
+	bool isGameOverDelayed_ = false; // 标记残机归零后等待进入 Game Over
+
 
 	bool finished_ = false;
 	float deathTimer_ = 0.0f;
