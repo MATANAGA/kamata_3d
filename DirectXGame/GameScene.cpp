@@ -49,7 +49,7 @@ void GameScene::Initialize() {
 	    mapChipField_->GetMapChipPositionByIndex(25, 8), 
 		mapChipField_->GetMapChipPositionByIndex(12, 6),
 	    mapChipField_->GetMapChipPositionByIndex(32, 8), 
-		mapChipField_->GetMapChipPositionByIndex(40, 2),
+		mapChipField_->GetMapChipPositionByIndex(22, 2),
 
 	};
 	for (const auto& pos : enemyPositions) {
@@ -188,6 +188,7 @@ void GameScene::Update() {
 
 						enemy->isAlive_ = false;
 						remainingEnemies_--; // 敌人数量 -1
+						enemiesDefeated_++;  // 增加击败数量
 
 						model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
 					} else {
@@ -237,6 +238,7 @@ void GameScene::Update() {
 
 						enemyB->isAlive_ = false;
 						remainingEnemies_--; // 敌人数量 -1
+						enemiesDefeated_++;  // 增加击败数量
 
 						model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
 					} else {
@@ -367,11 +369,12 @@ void GameScene::Update() {
 	skydomeTransform_.matWorld_ = MakeAffineMatrrix(skydomeTransform_.scale_, skydomeTransform_.rotation_, skydomeTransform_.translation_);
 	skydomeTransform_.TransferMatrix();
 
-	if (phase_ == Phase::kPlay && remainingEnemies_ == 0) {
+	if (phase_ == Phase::kPlay && enemiesDefeated_ >= 9) {
 		phase_ = Phase::kFadeOutToTitle;
 		fadeTimer_ = 0.0f;
 		fade_->Start(Fade::Status::FadeOut, kFadeOutToClear);
 	}
+
 
 
 	ChangePhase();

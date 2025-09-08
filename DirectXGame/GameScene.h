@@ -83,6 +83,8 @@ private:
 	DeathParticles* deathParticles_ = nullptr;
 	Fade* fade_ = nullptr;
 	std::vector<DeathParticles*> enemyDeathParticles_;
+	int enemiesDefeated_ = 0;        // 玩家击败敌人的数量
+	const int kEnemiesToClear_ = 10; // 通关所需击败敌人数
 
 	std::vector<Enemy*> enemies_;
 
