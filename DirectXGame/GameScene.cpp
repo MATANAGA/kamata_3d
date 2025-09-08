@@ -182,24 +182,24 @@ void GameScene::Update() {
 			}
 			++it;
 		}
-		for (auto it = enemiesB_.begin(); it != enemiesB_.end();) {
-			EnemyB* enemyB = *it; // <- 这里定义指针
-			if (enemyB->CheckCollisionWithPlayer(*model_)) {
+		for (auto it = enemies_.begin(); it != enemies_.end();) {
+			Enemy* enemy = *it; // <- 这里定义指针
+			if (enemy->CheckCollisionWithPlayer(*model_)) {
 				const auto& playerPos = model_->GetWorldTransform().translation_;
-				const auto& enemyPos = enemyB->GetWorldTransform().translation_;
+				const auto& enemyPos = enemy->GetWorldTransform().translation_;
 				bool stomped = (model_->velocity_.y < 0) && (playerPos.y > enemyPos.y + EnemyB::kHeight / 2.0f);
 
 				if (stomped) {
 					Audio::GetInstance()->PlayWave(hitSoundHandle_, false);
 
-					// 使用敌人 B 死亡模型
 					DeathParticles* enemyDeath = new DeathParticles();
-					enemyDeath->Initialize(modelEnemyBDeath_, &camera_, enemyB->GetWorldTransform().translation_);
+					enemyDeath->Initialize(modelEnemyBDeath_, &camera_, enemy->GetWorldTransform().translation_);
 					enemyDeathParticles_.push_back(enemyDeath);
 
-					it = enemiesB_.erase(it); // <- erase 返回下一个迭代器
-					delete enemyB;
+					enemy->isAlive_ = false; // 不删除，只是设为死亡
 					model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
+
+					++it; // 不 erase，就正常 ++
 					continue;
 				} else {
 					model_->SetAlive(false);
@@ -218,18 +218,17 @@ void GameScene::Update() {
 				const auto& playerPos = model_->GetWorldTransform().translation_;
 				const auto& enemyPos = enemyB->GetWorldTransform().translation_;
 				bool stomped = (model_->velocity_.y < 0) && (playerPos.y > enemyPos.y + EnemyB::kHeight / 2.0f);
-
 				if (stomped) {
 					Audio::GetInstance()->PlayWave(hitSoundHandle_, false);
 
 					DeathParticles* enemyDeath = new DeathParticles();
-					enemyDeath->Initialize(modelDeathParticle_, &camera_, enemyB->GetWorldTransform().translation_);
+					enemyDeath->Initialize(modelEnemyBDeath_, &camera_, enemyB->GetWorldTransform().translation_);
 					enemyDeathParticles_.push_back(enemyDeath);
 
-					it = enemiesB_.erase(it);
-					delete enemyB;
-
+					enemyB->isAlive_ = false; // 不删除，只是设为死亡
 					model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
+
+					++it; // 不 erase，就正常 ++
 					continue;
 				} else {
 					model_->SetAlive(false);
@@ -276,11 +275,19 @@ void GameScene::Update() {
 		}
 	}
 
-	for (auto& enemy : enemies_)
-		enemy->Update();
-	for (auto& enemyB : enemiesB_) {
-		enemyB->Update();
+	for (auto& enemy : enemies_) {
+		if (enemy->isAlive_) {
+			enemy->Update();
+		}
 	}
+
+	
+	for (auto& enemyB : enemiesB_) {
+		if (enemyB->isAlive_) {
+			enemyB->Update();
+		}
+	}
+
 
 	for (const auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {
@@ -353,10 +360,18 @@ void GameScene::Draw() {
 		}
 	}
 
-	for (auto& enemy : enemies_)
-		enemy->Draw();
-	for (auto& enemyB : enemiesB_)
-		enemyB->Draw();
+	for (auto& enemy : enemies_) {
+		if (enemy->isAlive_) {
+			enemy->Draw();
+		}
+	}
+
+	for (auto& enemyB : enemiesB_) {
+		if (enemyB->isAlive_) {
+			enemyB->Draw();
+		}
+	}
+
 
 	for (const auto& line : worldTransformBlocks_)
 		for (WorldTransform* blockTransform : line)

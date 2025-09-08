@@ -11,6 +11,7 @@ public:
 	bool CheckCollisionWithPlayer(const Player& player) const;
 	const KamataEngine::WorldTransform& GetWorldTransform() const { return worldTransform_; }
 	static inline const float kHeight = 0.8f;
+	bool isAlive_ = true; // 初始是活的
 
 private:
 	void UpdateMatrix();
