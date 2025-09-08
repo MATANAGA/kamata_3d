@@ -10,6 +10,7 @@ public:
 
 	bool CheckCollisionWithPlayer(const Player& player) const;
 	const KamataEngine::WorldTransform& GetWorldTransform() const { return worldTransform_; }
+
 	static inline const float kHeight = 0.8f;
 
 private:
@@ -18,7 +19,9 @@ private:
 	KamataEngine::WorldTransform worldTransform_;
 	KamataEngine::Model* model_ = nullptr;
 	KamataEngine::Camera* camera_ = nullptr;
-	KamataEngine::Vector3 velocity_ = {};
+
+	KamataEngine::Vector3 velocity_ = {};       // 当前速度
+	KamataEngine::Vector3 targetVelocity_ = {}; // 目标速度（幽灵漂浮目标）
 
 	static inline const float kWalkSpeed = 0.05f;
 	static inline const float kWidth = 0.8f;

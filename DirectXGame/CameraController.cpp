@@ -33,7 +33,7 @@ void CameraController::Update() {
     // 補間
     camera_.translation_.x = Lerp(camera_.translation_.x, targetPosition_.x, kInterpolationRate);
     camera_.translation_.y = Lerp(camera_.translation_.y, targetPosition_.y, kInterpolationRate);
-    camera_.translation_.z = Lerp(camera_.translation_.z, targetPosition_.z, kInterpolationRate);
+    //camera_.translation_.z = Lerp(camera_.translation_.z, targetPosition_.z, kInterpolationRate);
 
     // 追従対象を画面内に収める補正
     camera_.translation_.x = std::max(camera_.translation_.x, targetWorldTransform.translation_.x + targetMargin_.left);
@@ -43,8 +43,8 @@ void CameraController::Update() {
     camera_.translation_.y = std::min(camera_.translation_.y, targetWorldTransform.translation_.y + targetMargin_.top);
 
     // 移動範囲制限
-    camera_.translation_.x = std::clamp(camera_.translation_.x, movableArea_.left, movableArea_.right);
-    camera_.translation_.y = std::clamp(camera_.translation_.y, movableArea_.bottom, movableArea_.top);
+    camera_.translation_.x = std::clamp(camera_.translation_.x, movableArea_.left, 28.0f);
+    camera_.translation_.y = std::clamp(camera_.translation_.y, movableArea_.bottom, 12.0f);
 
     // 行列更新
     camera_.UpdateMatrix();

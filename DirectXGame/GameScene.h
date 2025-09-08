@@ -39,7 +39,14 @@ public:
 	KamataEngine::DebugCamera* debugCamera_ = nullptr;
 	KamataEngine::Model* modelPlayer_ = nullptr;
 	KamataEngine::Model* modelDeathParticle_ = nullptr;
+	KamataEngine::Model* modelEnemyADeathParticels_ = nullptr;
+	KamataEngine::Model* modelEnemyBDeathParticels_ = nullptr;
+
 	KamataEngine::Model* modelEnemy_ = nullptr;
+	KamataEngine::Model* modelEnemyB_ = nullptr;
+	KamataEngine::Model* modelEnemyADeath_ = nullptr; // Enemy A 的死亡特效模型
+	KamataEngine::Model* modelEnemyBDeath_ = nullptr; // Enemy B 的死亡特效模型
+
 	KamataEngine::Model* skydome_ = nullptr;
 	KamataEngine::Model* modelSkydome_ = nullptr;   // 用于直接渲染天球
 	KamataEngine::WorldTransform skydomeTransform_; // 天球的变换矩阵
@@ -49,10 +56,14 @@ public:
 	bool skydomeSpecialMode_ = false; // 是否使用特殊天球
 
 private:
+	// 玩家模型与天球切换用
+	enum class SwitchPhase { None, FadingOut, FadingIn };
+	SwitchPhase switchPhase_ = SwitchPhase::None;
+	bool nextSpecialMode_ = false; // 记录要切换到的模式
+
 	bool finished_ = false;
 	float deathTimer_ = 0.0f;
-	std::vector<EnemyB*> enemiesB_; // EnemyB 容器
-	KamataEngine::Model* modelEnemyB_ = nullptr;
+	std::vector<EnemyB*> enemiesB_;
 	Model* modelPlayerNormal_ = nullptr;
 	Model* modelPlayerDead_ = nullptr;
 	CameraController* cameraController_ = nullptr;

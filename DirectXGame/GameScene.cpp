@@ -34,7 +34,13 @@ void GameScene::Initialize() {
 	} else {
 		model_->Initialize(modelPlayerNormal_, &camera_, playerPosition);
 	}
-	modelDeathParticle_ = Model::CreateFromOBJ("deathParticle");
+	modelDeathParticle_ = Model::CreateFromOBJ("player");
+
+	// 敌人 A 死亡特效模型
+	modelEnemyADeath_ = Model::CreateFromOBJ("kunBall");
+
+	// 敌人 B 死亡特效模型
+	modelEnemyBDeath_ = Model::CreateFromOBJ("gost");
 
 	// 敌人初始化
 	modelEnemy_ = Model::CreateFromOBJ("kunBall");
@@ -51,7 +57,7 @@ void GameScene::Initialize() {
 	}
 
 	// EnemyB 初始化
-	modelEnemyB_ = Model::CreateFromOBJ("enemyB"); // OBJ 文件名
+	modelEnemyB_ = Model::CreateFromOBJ("gost"); // OBJ 文件名
 
 	std::vector<Vector3> enemyBPositions = {
 	    mapChipField_->GetMapChipPositionByIndex(10, 5), mapChipField_->GetMapChipPositionByIndex(15, 7)
@@ -99,16 +105,42 @@ void GameScene::Update() {
 	}
 	// GameScene.cpp Update()
 	// 按键切换玩家模型
+	// 按键请求切换（触发淡出）
 	if (Input::GetInstance()->TriggerKey(DIK_1)) {
-		model_->SetModel(modelPlayerNormal_);
-		currentSkydomeModel_ = modelSkydomeNormal_; // 切换到普通天球
-		skydomeSpecialMode_ = false;
+		if (!fade_->IsFading() && switchPhase_ == SwitchPhase::None) {
+			nextSpecialMode_ = false; // 普通模式
+			fade_->Start(Fade::Status::FadeOut, 0.5f);
+			switchPhase_ = SwitchPhase::FadingOut;
+		}
 	}
 	if (Input::GetInstance()->TriggerKey(DIK_2)) {
-		model_->SetModel(modelPlayerDead_);
-		currentSkydomeModel_ = modelSkydomeSpecial_; // 切换到特殊天球
-		skydomeSpecialMode_ = true;
+		if (!fade_->IsFading() && switchPhase_ == SwitchPhase::None) {
+			nextSpecialMode_ = true; // 特殊模式
+			fade_->Start(Fade::Status::FadeOut, 0.5f);
+			switchPhase_ = SwitchPhase::FadingOut;
+		}
 	}
+
+	// Fade 切换逻辑
+	if (switchPhase_ == SwitchPhase::FadingOut && !fade_->IsFading()) {
+		// 淡出完成 → 切换模型
+		if (nextSpecialMode_) {
+			model_->SetModel(modelPlayerDead_);
+			currentSkydomeModel_ = modelSkydomeSpecial_;
+			skydomeSpecialMode_ = true;
+		} else {
+			model_->SetModel(modelPlayerNormal_);
+			currentSkydomeModel_ = modelSkydomeNormal_;
+			skydomeSpecialMode_ = false;
+		}
+		// 切换完毕 → 淡入
+		fade_->Start(Fade::Status::FadeIn, 2.5f);
+		switchPhase_ = SwitchPhase::FadingIn;
+	} else if (switchPhase_ == SwitchPhase::FadingIn && !fade_->IsFading()) {
+		// 淡入完成 → 切换结束
+		switchPhase_ = SwitchPhase::None;
+	}
+
 
 
 #ifdef _DEBUG
@@ -127,20 +159,18 @@ void GameScene::Update() {
 				bool stomped = (model_->velocity_.y < 0) && (playerPos.y > enemyPos.y + Enemy::kHeight / 2.0f);
 
 				if (stomped) {
-					Audio::GetInstance()->PlayWave(hitSoundHandle_, false); // 每次都播
+					Audio::GetInstance()->PlayWave(hitSoundHandle_, false);
 
-					// 玩家踩死敌人 → 添加死亡特效
 					DeathParticles* enemyDeath = new DeathParticles();
-					enemyDeath->Initialize(modelDeathParticle_, &camera_, enemy->GetWorldTransform().translation_);
+					// 使用敌人 A 的死亡特效模型
+					enemyDeath->Initialize(modelEnemyADeath_, &camera_, enemy->GetWorldTransform().translation_);
 					enemyDeathParticles_.push_back(enemyDeath);
 
-					// 删除敌人
 					it = enemies_.erase(it);
 					delete enemy;
 
-					// 玩家反弹
 					model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
-					continue; // 跳过 it++
+					continue;
 				} else {
 					// 玩家被碰到 → 死亡
 					model_->SetAlive(false);
@@ -148,9 +178,39 @@ void GameScene::Update() {
 					deathTimer_ = 0.0f;
 					break;
 				}
+				
 			}
 			++it;
 		}
+		for (auto it = enemiesB_.begin(); it != enemiesB_.end();) {
+			EnemyB* enemyB = *it; // <- 这里定义指针
+			if (enemyB->CheckCollisionWithPlayer(*model_)) {
+				const auto& playerPos = model_->GetWorldTransform().translation_;
+				const auto& enemyPos = enemyB->GetWorldTransform().translation_;
+				bool stomped = (model_->velocity_.y < 0) && (playerPos.y > enemyPos.y + EnemyB::kHeight / 2.0f);
+
+				if (stomped) {
+					Audio::GetInstance()->PlayWave(hitSoundHandle_, false);
+
+					// 使用敌人 B 死亡模型
+					DeathParticles* enemyDeath = new DeathParticles();
+					enemyDeath->Initialize(modelEnemyBDeath_, &camera_, enemyB->GetWorldTransform().translation_);
+					enemyDeathParticles_.push_back(enemyDeath);
+
+					it = enemiesB_.erase(it); // <- erase 返回下一个迭代器
+					delete enemyB;
+					model_->velocity_.y = Player::kJumpAcceleration * 0.7f;
+					continue;
+				} else {
+					model_->SetAlive(false);
+					phase_ = Phase::kDeathWait;
+					deathTimer_ = 0.0f;
+					break;
+				}
+			}
+			++it; // <- 正确递增迭代器
+		}
+
 		// EnemyB 碰撞
 		for (auto it = enemiesB_.begin(); it != enemiesB_.end();) {
 			EnemyB* enemyB = *it;

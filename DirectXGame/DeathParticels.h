@@ -1,7 +1,5 @@
 ﻿#pragma once
 #include "KamataEngine.h"
-#include <array>
-#include <numbers>
 
 class DeathParticles {
 public:
@@ -13,20 +11,18 @@ public:
 private:
 	void UpdateMatrix();
 
-	static inline const uint32_t kNumParticles = 8;
-	static inline const float kDuration = 1.0f;                                                                  // 存続時間（秒）
-	static inline const float kSpeed = 0.1f;                                                                     // 移動速度
-	static inline const float kAngleUnit = std::numbers::pi_v<float> * 2.0f / static_cast<float>(kNumParticles); // 1つ分の角度
+	static inline const float kInitialSpeed = 15.0f;    // 初始向上速度
+	static inline const float kGravity = 19.8f;         // 重力加速度
+	static inline const float kRotationSpeed = 360.0f; // 翻滚角速度（度/秒）
+	static inline const float kZSpeed = -5.0f;         // Z轴靠近画面速度
+	static inline const float kScaleSpeed = 1.5f;      // 放大速度，每秒放大倍数
 
 	KamataEngine::Model* model_ = nullptr;
 	KamataEngine::Camera* camera_ = nullptr;
 
-	std::array<KamataEngine::WorldTransform, kNumParticles> worldTransforms_;
-	std::array<KamataEngine::Vector3, kNumParticles> velocities_; // 各パーティクルの速度
-
-	KamataEngine::ObjectColor objectColor_; // 色変更用
-	KamataEngine::Vector4 color_{};         // 現在の色（RGBA）
+	KamataEngine::WorldTransform worldTransform_;
+	KamataEngine::Vector3 velocity_;
+	KamataEngine::Vector3 rotationVelocity_;
 
 	bool isFinished_ = false;
-	float counter_ = 0.0f;
 };

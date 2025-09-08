@@ -1,4 +1,5 @@
 ﻿#include "EnemyB.h"
+#include "MapChipField.h"
 #include "MyMath.h"
 #include <cassert>
 #include <cmath>
@@ -15,45 +16,68 @@ void EnemyB::Initialize(Model* model, Camera* camera, const Vector3& position) {
 
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = position;
-	worldTransform_.rotation_.y = -std::numbers::pi_v<float> / 2;
-	velocity_ = {-kWalkSpeed, 0.0f, 0.0f};
+
+	velocity_ = {0.0f, 0.0f, 0.0f};
+	targetVelocity_ = {0.0f, 0.0f, 0.0f};
 	walkTimer_ = 0.0f;
+	selfRotateY_ = 0.0f;
+
 	UpdateMatrix();
 }
 
 void EnemyB::Update() {
-	// 移动计时器
+	// 漂浮计时器
 	walkTimer_ += 1.0f / 60.0f;
 
-	// 随机巡逻逻辑：当到达巡逻边界或随机触发时改变方向
-	if (worldTransform_.translation_.x <= kPatrolMinX) {
-		velocity_.x = kWalkSpeed; // 往右
-	} else if (worldTransform_.translation_.x >= kPatrolMaxX) {
-		velocity_.x = -kWalkSpeed; // 往左
-	} else {
-		// 小概率随机改变方向
-		if ((rand() % 200) == 0) { // 约每 200 帧随机一次
-			velocity_.x *= -1.0f;
-		}
+	// 每隔约2秒随机一次目标方向（只在XY平面）
+	if (static_cast<int>(walkTimer_ * 60) % 120 == 0) {
+		float angle = static_cast<float>(rand()) / RAND_MAX * 2.0f * std::numbers::pi_v<float>;
+		float vy = (static_cast<float>(rand()) / RAND_MAX - 0.5f) * 0.05f; // 上下漂浮
+
+		targetVelocity_.x = std::cos(angle) * kWalkSpeed;
+		targetVelocity_.y = vy;
+		targetVelocity_.z = 0.0f; // 禁止Z轴漂移
 	}
 
-	// 更新位置
+	// --- 软约束：地图边界检测 ---
+	float mapWidth = MapChipField::kNumBlockHorizontal * MapChipField::kBlockWidth;
+	float mapHeight = MapChipField::kNumBlockVirtical * MapChipField::kBlockHeight;
+
+	const float margin = 1.0f; // 边界安全距离
+
+	if (worldTransform_.translation_.x < margin) {
+		targetVelocity_.x = std::abs(targetVelocity_.x); // 往右
+	} else if (worldTransform_.translation_.x > mapWidth - margin) {
+		targetVelocity_.x = -std::abs(targetVelocity_.x); // 往左
+	}
+
+	if (worldTransform_.translation_.y < margin) {
+		targetVelocity_.y = std::abs(targetVelocity_.y); // 往上
+	} else if (worldTransform_.translation_.y > mapHeight - margin) {
+		targetVelocity_.y = -std::abs(targetVelocity_.y); // 往下
+	}
+
+	// --- 平滑插值到目标速度 ---
+	float t = 0.02f; // 插值系数
+	velocity_.x += (targetVelocity_.x - velocity_.x) * t;
+	velocity_.y += (targetVelocity_.y - velocity_.y) * t;
+
+	// 更新位置（Z保持不动）
 	worldTransform_.translation_.x += velocity_.x;
+	worldTransform_.translation_.y += velocity_.y;
 
-	// 朝向
-	worldTransform_.rotation_.y = (velocity_.x > 0.0f) ? std::numbers::pi_v<float> / 2 : -std::numbers::pi_v<float> / 2;
-
-	// 自转动画
-	const float kRotateSpeedY = 2.0f * std::numbers::pi_v<float> / 120.0f;
+	// 敌人保持轻微自转
+	const float kRotateSpeedY = 2.0f * std::numbers::pi_v<float> / 240.0f;
 	selfRotateY_ += kRotateSpeedY;
-	worldTransform_.rotation_.y += selfRotateY_;
+	worldTransform_.rotation_.y = selfRotateY_;
 
 	UpdateMatrix();
 }
 
 void EnemyB::Draw() {
-	if (model_ && camera_)
+	if (model_ && camera_) {
 		model_->Draw(worldTransform_, *camera_);
+	}
 }
 
 void EnemyB::UpdateMatrix() {
