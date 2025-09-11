@@ -106,8 +106,19 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Block.cpp" />
+    <ClCompile Include="CameraController.cpp" />
+    <ClCompile Include="ClearScene.cpp" />
+    <ClCompile Include="DeathParticels.cpp" />
+    <ClCompile Include="DeathScene.cpp" />
+    <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="Fade.cpp" />
     <ClCompile Include="GameScene.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MapChipField.cpp" />
+    <ClCompile Include="MyMath.cpp" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Skydome.cpp" />
     <ClCompile Include="StageScene.cpp" />
     <ClCompile Include="TitleScene.cpp" />
   </ItemGroup>
@@ -187,7 +198,18 @@
     <None Include="Resources\shaders\Sprite.hlsli" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Block.h" />
+    <ClInclude Include="CameraController.h" />
+    <ClInclude Include="ClearScene.h" />
+    <ClInclude Include="DeathParticels.h" />
+    <ClInclude Include="DeathScene.h" />
+    <ClInclude Include="Enemy.h" />
+    <ClInclude Include="Fade.h" />
     <ClInclude Include="GameScene.h" />
+    <ClInclude Include="MapChipField.h" />
+    <ClInclude Include="MyMath.h" />
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="Skydome.h" />
     <ClInclude Include="StageScene.h" />
     <ClInclude Include="TitleScene.h" />
   </ItemGroup>
